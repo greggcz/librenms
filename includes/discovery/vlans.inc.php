@@ -14,6 +14,7 @@ $device['vlans'] = array();
 require 'includes/discovery/vlans/q-bridge-mib.inc.php';
 require 'includes/discovery/vlans/cisco-vtp.inc.php';
 
+$delayed_insert = array();
 // Fetch switchport <> VLAN relationships. This is DIRTY.
 foreach ($device['vlans'] as $domain_id => $vlans) {
     foreach ($vlans as $vlan_id => $vlan) {
@@ -38,7 +39,7 @@ foreach ($device['vlans'] as $domain_id => $vlans) {
             }
 
             foreach ($vlan_data as $vlan_port_id => $vlan_port) {
-                $port = get_port_by_index_cache($device, $vlan_port['dot1dBasePortIfIndex']);
+                $port = get_port_by_index_cache($device['device_id'], $vlan_port['dot1dBasePortIfIndex']);
                 echo str_pad($vlan_port_id, 10).str_pad($vlan_port['dot1dBasePortIfIndex'], 10).str_pad($port['ifDescr'], 25).str_pad($vlan_port['dot1dStpPortPriority'], 10).str_pad($vlan_port['dot1dStpPortState'], 15).str_pad($vlan_port['dot1dStpPortPathCost'], 10);
 
                 $db_w = array(
@@ -52,22 +53,18 @@ foreach ($device['vlans'] as $domain_id => $vlans) {
                 $db_a['state']    = isset($vlan_port['dot1dStpPortState']) ? $vlan_port['dot1dStpPortState'] : 'unknown';
                 $db_a['cost']     = isset($vlan_port['dot1dStpPortPathCost']) ? $vlan_port['dot1dStpPortPathCost'] : 0;
 
-                $from_db = dbFetchRow('SELECT * FROM `ports_vlans` WHERE device_id = ? AND port_id = ? AND `vlan` = ?', array($device['device_id'], $port['port_id'], $vlan_id));
+                $from_db = get_ports_vlans_vlanid_portid_cache($device['device_id'], $vlan_id, $port['port_id']);
+                d_echo($from_db);
 
-                if ($from_db['port_vlan_id']) {
-                    dbUpdate($db_a, 'ports_vlans', '`port_vlan_id` = ?', array($from_db['port_vlan_id']));
-                    echo 'Updated';
-                }
-                else {
-                    dbInsert(array_merge($db_w, $db_a), 'ports_vlans');
-                    echo 'Inserted';
-                }
-
+                array_push($delayed_insert, array_merge($db_w, $db_a));
                 echo "\n";
             }//end foreach
         }//end if
     }//end foreach
 }//end foreach
+
+dbBulkInsertUpdate($delayed_insert, 'ports_vlans');
+
 
 foreach ($vlans_db as $domain_id => $vlans) {
     foreach ($vlans as $vlan_id => $vlan) {

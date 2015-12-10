@@ -151,7 +151,10 @@ function snmp_walk($device, $oid, $options=null, $mib=null, $mibdir=null) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk'] . ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd = $snmpcommand;
@@ -213,7 +216,10 @@ function snmpwalk_cache_cip($device, $oid, $array=array(), $mib=0) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk']. ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd  = $snmpcommand;
@@ -285,7 +291,10 @@ function snmp_cache_ifIndex($device) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk']. ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd  = $snmpcommand;
@@ -446,7 +455,10 @@ function snmpwalk_cache_twopart_oid($device, $oid, $array, $mib=0) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk']. ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd  = $snmpcommand;
@@ -501,7 +513,10 @@ function snmpwalk_cache_threepart_oid($device, $oid, $array, $mib=0) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk']. ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd  = $snmpcommand;
@@ -560,7 +575,10 @@ function snmp_cache_slotport_oid($oid, $device, $array, $mib=0) {
         $snmpcommand = $config['snmpwalk'];
     }
     else {
-        $snmpcommand = $config['snmpbulkwalk']. ' -Cr50 ';
+        $snmpcommand = $config['snmpbulkwalk'];
+        if (isset($config['snmpbulkwalk_cr'])) {
+            $snmpcommand .= ' -Cr'.$config['snmpbulkwalk_cr'].' ';
+        }
     }
 
     $cmd  = $snmpcommand;

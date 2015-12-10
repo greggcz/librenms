@@ -127,13 +127,14 @@ function get_sensor_rrd($device, $sensor) {
     return($rrd_file);
 }
 
-function get_port_by_index_cache($device_id, $ifIndex) {
+function get_port_by_index_cache($device_id, $ifIndex, $refresh = false) {
     global $port_index_cache;
 
-    if (isset($port_index_cache[$device_id][$ifIndex]) && is_array($port_index_cache[$device_id][$ifIndex])) {
+    if (!$refresh && isset($port_index_cache[$device_id][$ifIndex]) && is_array($port_index_cache[$device_id][$ifIndex])) {
         $port = $port_index_cache[$device_id][$ifIndex];
     }
     else {
+        d_echo('Port ifIndex ' . $ifIndex . ' device_id ' . $device_id . ' not in cache or refresh needed' . "\n");
         $port = get_port_by_ifIndex($device_id, $ifIndex);
         $port_index_cache[$device_id][$ifIndex] = $port;
     }
@@ -144,6 +145,72 @@ function get_port_by_index_cache($device_id, $ifIndex) {
 function get_port_by_ifIndex($device_id, $ifIndex) {
     return dbFetchRow("SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?", array($device_id, $ifIndex));
 }
+
+// DRNET: added get_all_ports_cache() to retrieve all ports form DB and populate the cache
+function get_all_ports_cache($device_id) {
+    global $port_index_cache;
+    global $port_cache_has_all;
+
+    if (isset($port_index_cache[$device_id]) && $port_cache_has_all[$device_id]) {
+        return $port_index_cache[$device_id];
+    }
+    else {
+        foreach (get_all_ports($device_id) as $port) {
+            $port_index_cache[$device_id][$port['ifIndex']] = $port;
+        }
+        $port_cache_has_all[$device_id] = true;
+        return $port_index_cache[$device_id];
+    }//endif
+}
+
+function get_all_ports($device_id) {
+    return dbFetchRows('SELECT * FROM `ports` WHERE `device_id` = ? ', array($device_id));
+}
+
+// DRNET: caching of ports_vlans table for SQL roundtrip optimization
+function get_ports_vlans_id_cache($device_id, $port_vlan_id, $refresh = false) {
+    global $ports_vlans_cache;
+
+    if(!$refresh && isset($ports_vlans_cache[$device_id][$port_vlan_id]) && is_array($ports_vlans_cache[$device_id][$port_vlan_id])) {
+        $ports_vlans = $ports_vlans_cache[$device_id][$port_vlan_id];
+    }
+    else {
+        $ports_vlans = get_ports_vlans_id($device_id, $port_vlan_id);
+        $ports_vlans_cache[$device_id][$port_vlan_id];
+    }
+    return $ports_vlans;
+}
+
+function get_ports_vlans_id($device_id, $port_vlan_id) {
+    return dbFetchRow('SELECT * FROM `ports_vlans` WHERE port_vlan_id = ? AND device_id = ?', array($port_vlan_id, $device_id));
+}
+
+function get_ports_vlans_cache($device_id) {
+    global $ports_vlans_cache;
+
+    if(!isset($ports_vlans_cache[$device_id])) {
+        foreach(get_ports_vlans($device_id) as $row) {
+            $ports_vlans_cache[$device_id][$row['port_vlan_id']] = $row;
+        }
+    }
+    return $ports_vlans_cache[$device_id];
+}
+
+function get_ports_vlans($device_id) {
+    return dbFetchRows('SELECT * FROM `ports_vlans` WHERE device_id = ?', (array($device_id)));
+}
+
+function get_ports_vlans_vlanid_portid_cache($device_id, $vlan_id, $port_id) {
+    d_echo("Seeking vlan $vlan_id and port_id $port_id\n");
+    foreach(get_ports_vlans_cache($device_id) as $port_vlan) {
+        if ($port_vlan['vlan'] == $vlan_id && $port_vlan['port_id'] == $port_id) {
+            d_echo($port_vlan);
+            return $port_vlan;
+        }
+    }
+}
+
+
 
 function get_all_devices($device, $type = "") {
     global $cache;

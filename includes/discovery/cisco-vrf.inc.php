@@ -95,7 +95,7 @@ if ($config['enable_vrfs']) {
 
                 echo "\n  [VRF $vrf_name] PORTS - ";
                 foreach ($port_table[$vrf_oid] as $if_id) {
-                    $interface = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $if_id));
+                    $interface = get_port_by_index_cache($device['device_id'], $if_id);
                     echo makeshortif($interface['ifDescr']).' ';
                     dbUpdate(array('ifVrf' => $vrf_id), 'ports', 'port_id=?', array($interface['port_id']));
                     $if = $interface['port_id'];

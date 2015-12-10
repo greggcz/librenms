@@ -9,14 +9,7 @@ $port_stats = snmpwalk_cache_oid($device, 'ifType', $port_stats, 'IF-MIB');
 // End Building SNMP Cache Array
 d_echo($port_stats);
 
-// Build array of ports in the database
-// FIXME -- this stuff is a little messy, looping the array to make an array just seems wrong. :>
-// -- i can make it a function, so that you don't know what it's doing.
-// -- $ports_db = adamasMagicFunction($ports_db); ?
-foreach (dbFetchRows('SELECT * FROM `ports` WHERE `device_id` = ?', array($device['device_id'])) as $port) {
-    $ports_db[$port['ifIndex']]   = $port;
-    $ports_db_l[$port['ifIndex']] = $port['port_id'];
-}
+$ports_db = get_all_ports_cache($device['device_id']);
 
 // New interface detection
 foreach ($port_stats as $ifIndex => $port) {
@@ -24,7 +17,7 @@ foreach ($port_stats as $ifIndex => $port) {
     if (is_port_valid($port, $device)) {
         if (!is_array($ports_db[$ifIndex])) {
             $port_id            = dbInsert(array('device_id' => $device['device_id'], 'ifIndex' => $ifIndex), 'ports');
-            $ports_db[$ifIndex] = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $ifIndex));
+            $ports_db[$ifIndex] = get_port_by_index_cache($device['device_id'], $ifIndex, true);
             echo 'Adding: '.$port['ifName'].'('.$ifIndex.')('.$ports_db[$port['ifIndex']]['port_id'].')';
         }
         else if ($ports_db[$ifIndex]['deleted'] == '1') {

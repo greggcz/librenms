@@ -13,7 +13,7 @@ if ($device['os'] == 'ironware' && $config['autodiscovery']['xdp'] === true) {
     if ($fdp_array) {
         unset($fdp_links);
         foreach (array_keys($fdp_array) as $key) {
-            $interface    = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $key));
+            $interface          = get_port_by_index_cache($device['device_id'], $key);
             $fdp_if_array = $fdp_array[$key];
             d_echo($fdp_if_array);
             foreach (array_keys($fdp_if_array) as $entry_key) {
@@ -46,9 +46,14 @@ if ($config['autodiscovery']['xdp'] === true) {
     if ($cdp_array) {
         unset($cdp_links);
         foreach (array_keys($cdp_array) as $key) {
-            $interface        = dbFetchRow('SELECT * FROM `ports` WHERE device_id = ? AND `ifIndex` = ?', array($device['device_id'], $key));
+
+        }
+
+        foreach (array_keys($cdp_array) as $key) {
+            $interface          = get_port_by_index_cache($device['device_id'], $key);
             $cdp_if_array = $cdp_array[$key];
             d_echo($cdp_if_array);
+
             foreach (array_keys($cdp_if_array) as $entry_key) {
                 $cdp = $cdp_if_array[$entry_key];
                 if (is_valid_hostname($cdp['cdpCacheDeviceId'])) {
@@ -91,7 +96,7 @@ if ($device['os'] == 'pbn' && $config['autodiscovery']['xdp'] === true) {
         foreach (array_keys($lldp_array) as $key) {
             $lldp = $lldp_array[$key];
             d_echo($lldp);
-            $interface     = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $lldp['lldpRemLocalPortNum']));
+            $interface          = get_port_by_index_cache($device['device_id'], $lldp['lldpRemLocalPortNum']);
             $remote_device_id = dbFetchCell('SELECT `device_id` FROM `devices` WHERE `sysName` = ? OR `hostname` = ?', array($lldp['lldpRemSysName'], $lldp['lldpRemSysName']));
 
             if (!$remote_device_id && is_valid_hostname($lldp['lldpRemSysName'])) {
@@ -132,8 +137,7 @@ if ($device['os'] == 'pbn' && $config['autodiscovery']['xdp'] === true) {
                 else {
                     $ifIndex = $entry_key;
                 }
-
-                $interface     = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $ifIndex));
+                $interface          = get_port_by_index_cache($device['device_id'], $ifIndex);
                 $lldp_instance = $lldp_if_array[$entry_key];
                 d_echo($lldp_instance);
                 foreach (array_keys($lldp_instance) as $entry_instance) {

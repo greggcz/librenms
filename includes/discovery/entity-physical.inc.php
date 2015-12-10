@@ -82,67 +82,10 @@ if ($config['enable_inventory']) {
         }
 
         // FIXME - dbFacile
-	// attempt to fix database roundtrip issue by Gregg
+	    // attempt to fix database roundtrip issue by DrNet
         if ($entPhysicalDescr || $entPhysicalName) {
-            //$entPhysical_id = dbFetchCell('SELECT entPhysical_id FROM `entPhysical` WHERE device_id = ? AND entPhysicalIndex = ?', array($device['device_id'], $entPhysicalIndex));
             $entPhysical_id = $entity_db_map[$entPhysicalIndex];
-/*
-            if ($entPhysical_id) {
-                $update_data = array(
-                    'entPhysicalIndex'        => $entPhysicalIndex,
-                    'entPhysicalDescr'        => $entPhysicalDescr,
-                    'entPhysicalClass'        => $entPhysicalClass,
-                    'entPhysicalName'         => $entPhysicalName,
-                    'entPhysicalModelName'    => $entPhysicalModelName,
-                    'entPhysicalSerialNum'    => $entPhysicalSerialNum,
-                    'entPhysicalContainedIn'  => $entPhysicalContainedIn,
-                    'entPhysicalMfgName'      => $entPhysicalMfgName,
-                    'entPhysicalParentRelPos' => $entPhysicalParentRelPos,
-                    'entPhysicalVendorType'   => $entPhysicalVendorType,
-                    'entPhysicalHardwareRev'  => $entPhysicalHardwareRev,
-                    'entPhysicalFirmwareRev'  => $entPhysicalFirmwareRev,
-                    'entPhysicalSoftwareRev'  => $entPhysicalSoftwareRev,
-                    'entPhysicalIsFRU'        => $entPhysicalIsFRU,
-                    'entPhysicalAlias'        => $entPhysicalAlias,
-                    'entPhysicalAssetID'      => $entPhysicalAssetID,
-                );
-                dbUpdate($update_data, 'entPhysical', 'device_id=? AND entPhysicalIndex=?', array($device['device_id'], $entPhysicalIndex));
-                echo '.';
-            }
-            else {
-                $insert_data = array(
-                    'device_id'               => $device['device_id'],
-                    'entPhysicalIndex'        => $entPhysicalIndex,
-                    'entPhysicalDescr'        => $entPhysicalDescr,
-                    'entPhysicalClass'        => $entPhysicalClass,
-                    'entPhysicalName'         => $entPhysicalName,
-                    'entPhysicalModelName'    => $entPhysicalModelName,
-                    'entPhysicalSerialNum'    => $entPhysicalSerialNum,
-                    'entPhysicalContainedIn'  => $entPhysicalContainedIn,
-                    'entPhysicalMfgName'      => $entPhysicalMfgName,
-                    'entPhysicalParentRelPos' => $entPhysicalParentRelPos,
-                    'entPhysicalVendorType'   => $entPhysicalVendorType,
-                    'entPhysicalHardwareRev'  => $entPhysicalHardwareRev,
-                    'entPhysicalFirmwareRev'  => $entPhysicalFirmwareRev,
-                    'entPhysicalSoftwareRev'  => $entPhysicalSoftwareRev,
-                    'entPhysicalIsFRU'        => $entPhysicalIsFRU,
-                    'entPhysicalAlias'        => $entPhysicalAlias,
-                    'entPhysicalAssetID'      => $entPhysicalAssetID,
-                );
-
-                if (!empty($ifIndex)) {
-                    $insert_data['ifIndex'] = $ifIndex;
-                } else {
-		    $insert_data['ifIndex'] = null;
-		}
-
-                array_push($delayed_insert, $insert_data);
-                //dbInsert($insert_data, 'entPhysical');
-                echo '+';
-            }//end if
-*/
-
-	    $data = array(
+	        $data = array(
                     'entPhysical_id'	      => $entPhysical_id,
                     'device_id'               => $device['device_id'],
                     'entPhysicalIndex'        => $entPhysicalIndex,
@@ -164,29 +107,33 @@ if ($config['enable_inventory']) {
                 );
             if (!empty($ifIndex)) {
                 $data['ifIndex'] = $ifIndex;
-            } else {
-		$data['ifIndex'] = null;
             }
-	    if ($entPhysical_id) {
-            	echo '.';
-	    } else {
-		echo '+';
-	    }
+            else {
+                $data['ifIndex'] = null;
+            }//end if
+
+            // display . or + as before change
+            if ($entPhysical_id) {
+                echo '.';
+            }
+            else {
+                echo '+';
+            }//end if
+
             array_push($delayed_insert, $data);
             $valid[$entPhysicalIndex] = 1;
 
         }//end if
     }//end foreach
     if(!dbBulkInsertUpdate($delayed_insert, 'entPhysical')) {
-	trigger_error('dbBulkInsert - Error in query: ' . mysql_error(), E_USER_WARNING);
+	    trigger_error('dbBulkInsert - Error in query: ' . mysql_error(), E_USER_WARNING);
     }
 }
 else {
     echo 'Disabled!';
 }//end if
 
-$sql = "SELECT * FROM `entPhysical` WHERE `device_id`  = '".$device['device_id']."'";
-foreach (dbFetchRows($sql) as $test) {
+foreach ($entity_db_array as $test) {
     $id = $test['entPhysicalIndex'];
     if (!$valid[$id]) {
         echo '-';

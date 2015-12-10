@@ -12,7 +12,7 @@ if ($device['os_group'] == 'cisco') {
         list($if, $direction, $a_a, $a_b, $a_c, $a_d, $a_e, $a_f) = explode('.', $oid);
         $oid = "$a_a.$a_b.$a_c.$a_d.$a_e.$a_f";
         unset($interface);
-        $interface = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $if));
+        $interface = get_port_by_index_cache($device['device_id'], $if);
         $ah_a      = zeropad(dechex($a_a));
         $ah_b      = zeropad(dechex($a_b));
         $ah_c      = zeropad(dechex($a_c));

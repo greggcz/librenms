@@ -160,7 +160,7 @@ function dbBulkInsertUpdate($data, $table) {
     $time_start = microtime(true);
     $result = dbQuery($sql.$values.$update_keys);
 
-    logfile($fullSql);
+    // logfile($fullSql);
     $time_end                = microtime(true);
     $db_stats['insert_sec'] += number_format(($time_end - $time_start), 8);
     $db_stats['insert']++;
@@ -214,7 +214,7 @@ function dbBulkInsert($data, $table) {
     $time_start = microtime(true);
     $result = dbQuery($sql.$values);
 
-    logfile($fullSql);
+    // logfile($fullSql);
     $time_end                = microtime(true);
     $db_stats['insert_sec'] += number_format(($time_end - $time_start), 8);
     $db_stats['insert']++;

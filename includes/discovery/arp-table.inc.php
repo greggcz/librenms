@@ -13,8 +13,7 @@ foreach (explode("\n", $ipNetToMedia_data) as $data) {
     list($if, $first, $second, $third, $fourth) = explode('.', $oid);
     $ip = $first.'.'.$second.'.'.$third.'.'.$fourth;
     if ($ip != '...') {
-        $interface = dbFetchRow('SELECT * FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $if));
-
+        $interface = get_port_by_index_cache($device['device_id'], $if);
         list($m_a, $m_b, $m_c, $m_d, $m_e, $m_f) = explode(':', $mac);
         $m_a  = zeropad($m_a);
         $m_b  = zeropad($m_b);

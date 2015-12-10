@@ -12,11 +12,14 @@ foreach (explode("\n", $nmoids) as $data) {
 	list($addr,$mask)	= explode(' ', $data);
 	$nmoids_map[$addr] = $mask;
 }
+/*
 $port_db_ids = dbFetchRows('SELECT `ifIndex`,`port_id` FROM `ports` WHERE `device_id` = ?',array($device['device_id']));
 $port_ids = array();
 foreach ($port_db_ids as $entry) {
 	$port_ids[$entry['ifIndex']] = $entry['port_id'];
-}
+}*/
+$ports = get_all_ports_cache($device['device_id']);
+
 foreach (explode("\n", $oids) as $data) {
     $data               = trim($data);
     list($oid,$ifIndex) = explode(' ', $data);
@@ -26,11 +29,8 @@ foreach (explode("\n", $oids) as $data) {
     $network            = $addr->network.'/'.$addr->bitmask;
     $cidr               = $addr->bitmask;
 
-    //if (dbFetchCell('SELECT COUNT(*) FROM `ports` WHERE device_id = ? AND `ifIndex` = ?', array($device['device_id'], $ifIndex)) != '0' && $oid != '0.0.0.0' && $oid != 'ipAdEntIfIndex') {
-    if ($port_ids[$ifIndex] > '0' && $oid != '0.0.0.0' && $oid != 'ipAdEntIfIndex') {
-	$port_id = $port_ids[$ifIndex];
-        //$port_id = dbFetchCell('SELECT `port_id` FROM `ports` WHERE `device_id` = ? AND `ifIndex` = ?', array($device['device_id'], $ifIndex));
-
+    if (isset($ports[$ifIndex]) && $ports[$ifIndex]['port_id'] > '0' && $oid != '0.0.0.0' && $oid != 'ipAdEntIfIndex') {
+	    $port_id = $ports[$ifIndex]['port_id'];
         if (dbFetchCell('SELECT COUNT(*) FROM `ipv4_networks` WHERE `ipv4_network` = ?', array($network)) < '1') {
             dbInsert(array('ipv4_network' => $network), 'ipv4_networks');
             // echo("Create Subnet $network\n");

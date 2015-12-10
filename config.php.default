@@ -49,3 +49,7 @@ $config['poller-wrapper']['alerter'] = FALSE;
 
 # Uncomment to submit callback stats via proxy
 #$config['callback_proxy'] = "hostname:port";
+
+### snmpbulkwalk -Cr setting (default value is 10)
+# uncomment to change the default value
+#$config['snmpbulkwalk_cr'] = 50;
