@@ -235,6 +235,7 @@ foreach ($port_stats as $ifIndex => $port) {
 echo "\n";
 // Loop ports in the DB and update where necessary
 $delayed_update = array();
+$device_attribs = get_dev_attribs($device['device_id']);
 foreach ($ports as $port) {
     echo 'Port '.$port['ifDescr'].'('.$port['ifIndex'].') ';
     if ($port_stats[$port['ifIndex']] && $port['disabled'] != '1') {
@@ -344,7 +345,7 @@ foreach ($ports as $port) {
         foreach ($data_oids as $oid) {
 
             if ($oid == 'ifAlias') {
-                if (get_dev_attrib($device, 'ifName:'.$port['ifName'], 1)) {
+                if ($device_attribs['ifName:'.$port['ifName']] == 1) {
                     $this_port['ifAlias'] = $port['ifAlias'];
                 }
             }
@@ -360,8 +361,8 @@ foreach ($ports as $port) {
                 }
             }
             else if ($port[$oid] != $this_port[$oid]) {
-                $port_tune = get_dev_attrib($device, 'ifName_tune:'.$port['ifName']);
-                $device_tune = get_dev_attrib($device,'override_rrdtool_tune');
+                $port_tune = $device_attribs['ifName_tune:'.$port['ifName']];
+                $device_tune = $device_attribs['override_rrdtool_tune'];
                 if ($port_tune == "true" ||
                     ($device_tune == "true" && $port_tune != 'false') || 
                     ($config['rrdtool_tune'] == "true" && $port_tune != 'false' && $device_tune != 'false')) {
@@ -559,8 +560,7 @@ foreach ($ports as $port) {
 
         // Update Database
         if (count($port['update'])) {
-            //$updated = dbUpdate($port['update'], 'ports', '`port_id` = ?', array($port['port_id']));
-	    $port['update']['port_id'] = $port['port_id'];
+            $port['update']['port_id'] = $port['port_id'];
             array_push($delayed_update, $port['update']);
             //d_echo("$updated updated");
         }
@@ -588,3 +588,5 @@ dbBulkInsertUpdate($delayed_update, 'ports');
 
 // Clear Variables Here
 unset($port_stats);
+unset($device_attribs);
+unset($delayed_update);

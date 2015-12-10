@@ -1,5 +1,6 @@
 <?php
 
+$delayed_update = array();
 foreach (dbFetchRows('SELECT * FROM mempools WHERE device_id = ?', array($device['device_id'])) as $mempool) {
     echo 'Mempool '.$mempool['mempool_descr'].': ';
 
@@ -47,9 +48,8 @@ foreach (dbFetchRows('SELECT * FROM mempools WHERE device_id = ?', array($device
         $mempool['state']['mempool_lowestfree'] = $mempool['lowestfree'];
     }
 
-    dbUpdate($mempool['state'], 'mempools', '`mempool_id` = ?', array($mempool['mempool_id']));
-
+    array_push($delayed_update, array_merge($mempool['state'], array('mempool_id'=> $mempool['mempool_id'])));
     echo "\n";
 }//end foreach
-
+dbBulkInsertUpdate($delayed_update, 'mempools');
 unset($mempool_cache);

@@ -1,5 +1,6 @@
 <?php
 
+$delayed_update = array();
 foreach (dbFetchRows('SELECT * FROM processors WHERE device_id = ?', array($device['device_id'])) as $processor) {
     echo 'Processor '.$processor['processor_descr'].'... ';
 
@@ -36,6 +37,8 @@ foreach (dbFetchRows('SELECT * FROM processors WHERE device_id = ?', array($devi
     );
 
     rrdtool_update($procrrd, $fields);
-
-    dbUpdate(array('processor_usage' => $proc), 'processors', '`processor_id` = ?', array($processor['processor_id']));
+    array_push($delayed_update, array('processor_usage' => $proc, 'processor_id'=> $processor['processor_id']));
 }//end foreach
+dbBulkInsertUpdate($delayed_update, 'processors');
+
+unset($delayed_update);
