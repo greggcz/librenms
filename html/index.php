@@ -72,7 +72,7 @@ $config['memcached']['ttl'] = $config['time']['now']+300;
 
 Plugins::start();
 
-$runtime_start = utime();
+$runtime_start = microtime(true);
 
 ob_start();
 
@@ -165,8 +165,14 @@ else {
   <script src="js/jquery.bootgrid.min.js"></script>
   <script src="js/handlebars.min.js"></script>
   <script src="js/pace.min.js"></script>
+    <?php
+        if ($config['enable_lazy_load'] === true) {
+    ?>
   <script src="js/jquery.lazyload.min.js"></script>
   <script src="js/lazyload.js"></script>
+    <?php
+        }
+    ?>
   <script src="js/librenms.js"></script>
   <script type="text/javascript">
 
@@ -257,7 +263,7 @@ else {
 </div>
 <?php
 
-$runtime_end = utime();
+$runtime_end = microtime(true);
 $runtime = $runtime_end - $runtime_start;
 $gentime = substr($runtime, 0, 5);
 

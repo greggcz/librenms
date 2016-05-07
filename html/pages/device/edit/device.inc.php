@@ -5,7 +5,7 @@ if ($_POST['editing']) {
 
         $override_sysLocation_bool = mres($_POST['override_sysLocation']);
         if (isset($_POST['sysLocation'])) {
-            $override_sysLocation_string = mres($_POST['sysLocation']);
+            $override_sysLocation_string = $_POST['sysLocation'];
         }
 
         if ($device['override_sysLocation'] != $override_sysLocation_bool || $device['location'] != $override_sysLocation_string) {
@@ -62,7 +62,7 @@ elseif ($update_message) {
 }
 
 ?>
-
+<h3> Device Settings </h3>
 <div class="row">
     <div class="col-md-1 col-md-offset-2">
         <form id="delete_host" name="delete_host" method="post" action="delhost/" role="form">
@@ -86,7 +86,7 @@ elseif ($update_message) {
     <div class="form-group">
         <label for="descr" class="col-sm-2 control-label">Description:</label>
         <div class="col-sm-6">
-            <input id="descr" name="descr" value="<?php echo($device['purpose']); ?>" class="form-control">
+            <textarea id="descr" name="descr" class="form-control"><?php echo($device['purpose']); ?></textarea>
         </div>
     </div>
     <div class="form-group">
@@ -114,9 +114,7 @@ elseif ($update_message) {
 <div class="form-group">
     <label for="sysLocation" class="col-sm-2 control-label">Override sysLocation:</label>
     <div class="col-sm-6">
-        <div class="checkbox">
-            <input onclick="edit.sysLocation.disabled=!edit.override_sysLocation.checked" type="checkbox" name="override_sysLocation"<?php if ($override_sysLocation) echo(' checked="1"'); ?> />
-        </div>
+      <input onclick="edit.sysLocation.disabled=!edit.override_sysLocation.checked" type="checkbox" name="override_sysLocation"<?php if ($override_sysLocation) echo(' checked="1"'); ?> />
     </div>
 </div>
 <div class="form-group">

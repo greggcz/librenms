@@ -13,13 +13,24 @@
         - [`get_graphs`](#api-route-5)
         - [`get_graph_generic_by_hostname`](#api-route-6)
         - [`get_port_graphs`](#api-route-7)
+        - [`get_port_stack`](#api-route-29)
+        - [`get_components`](#api-route-25)
+        - [`add_components`](#api-route-26)
+        - [`edit_components`](#api-route-27)
+        - [`delete_components`](#api-route-28)
         - [`get_port_stats_by_port_hostname`](#api-route-8)
         - [`get_graph_by_port_hostname`](#api-route-9)
         - [`list_devices`](#api-route-10)
         - [`add_device`](#api-route-11)
         - [`list_oxidized`](#api-route-21)
+        - [`update_device_field`](#api-route-update_device_field)
+        - [`get_device_groups`](#api-route-get_device_groups)
+    - [`devicegroups`](#api-devicegroups)
+        - [`get_devicegroups`](#api-route-get_devicegroups)
+        - [`get_devices_by_group`](#api-route-get_devices_by_group)
     - [`routing`](#api-routing)
         - [`list_bgp`](#api-route-1)
+        - [`list_ipsec`](#list_ipsec)
     - [`switching`](#api-switching)
         - [`get_vlans`](#api-route-4)
     - [`alerts`](#api-alerts)
@@ -106,7 +117,7 @@ Route: /api/v0/devices/:hostname
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -140,7 +151,7 @@ Route: /api/v0/devices/:hostname
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -173,7 +184,7 @@ Route: /api/v0/devices/:hostname/graphs
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -266,6 +277,193 @@ Output:
 }
 ```
 
+### <a name="api-route-29">Function: `get_port_stack`</a> [`top`](#top)
+
+Get a list of port mappings for a device.  This is useful for showing physical ports that are in a virtual port-channel.
+
+Route: /api/v0/devices/:hostname/port_stack
+
+- hostname can be either the device hostname or id
+
+Input:
+
+ - valid_mappings: Filter the result by only showing valid mappings ("0" values not shown).
+
+Example:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/port_stack?valid_mappings
+```
+
+Output:
+
+```text
+{
+  "status": "ok",
+  "err-msg": "",
+  "count": 2,
+  "mappings": [
+    {
+      "device_id": "3742",
+      "port_id_high": "1001000",
+      "port_id_low": "51001",
+      "ifStackStatus": "active"
+    },
+    {
+      "device_id": "3742",
+      "port_id_high": "1001000",
+      "port_id_low": "52001",
+      "ifStackStatus": "active"
+    }
+  ]
+}
+```
+
+### <a name="api-route-25">Function: `get_components`</a> [`top`](#top)
+
+Get a list of components for a particular device.
+
+Route: /api/v0/devices/:hostname/components
+
+- hostname can be either the device hostname or id
+
+Input:
+
+ - type: Filter the result by type (Equals).
+ - id: Filter the result by id (Equals).
+ - label: Filter the result by label (Contains).
+ - status: Filter the result by status (Equals).
+ - disabled: Filter the result by disabled (Equals).
+ - ignore: Filter the result by ignore (Equals).
+
+Example:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/components
+```
+
+Output:
+
+```text
+{
+    "status": "ok",
+    "err-msg": "",
+    "count": 3,
+    "components": {
+        "2": {
+            "TestAttribute-1": "Value1",
+            "TestAttribute-2": "Value2",
+            "TestAttribute-3": "Value3",
+            "type": "TestComponent-1",
+            "label": "This is a really cool blue component",
+            "status": "1",
+            "ignore": "0",
+            "disabled": "0"
+        },
+        "20": {
+            "TestAttribute-1": "Value4",
+            "TestAttribute-2": "Value5",
+            "TestAttribute-3": "Value6",
+            "type": "TestComponent-1",
+            "label": "This is a really cool red component",
+            "status": "1",
+            "ignore": "0",
+            "disabled": "0"
+        },
+        "27": {
+            "TestAttribute-1": "Value7",
+            "TestAttribute-2": "Value8",
+            "TestAttribute-3": "Value9",
+            "type": "TestComponent-2",
+            "label": "This is a really cool yellow widget",
+            "status": "1",
+            "ignore": "0",
+            "disabled": "0"
+        }
+    }
+}
+```
+
+### <a name="api-route-26">Function: `add_components`</a> [`top`](#top)
+
+Create a new component of a type on a particular device.
+
+Route: /api/v0/devices/:hostname/components/:type
+
+- hostname can be either the device hostname or id
+- type is the type of component to add
+
+Example:
+```curl
+curl -X POST -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/components/APITEST
+```
+
+Output:
+
+```text
+{
+    "status": "ok",
+    "err-msg": "",
+    "count": 1,
+    "components": {
+        "4459": {
+            "type": "APITEST",
+            "label": "",
+            "status": 1,
+            "ignore": 0,
+            "disabled": 0,
+            "error": ""
+        }
+    }
+}
+```
+
+### <a name="api-route-27">Function: `edit_components`</a> [`top`](#top)
+
+Edit an existing component on a particular device.
+
+Route: /api/v0/devices/:hostname/components
+
+- hostname can be either the device hostname or id
+
+In this example we set the label and add a new field: TestField:
+```curl
+curl -X PUT -d '{"4459": {"type": "APITEST","label": "This is a test label","status": 1,"ignore": 0,"disabled": 0,"error": "","TestField": "TestData"}}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/components
+```
+
+Output:
+
+```text
+{
+    "status": "ok",
+    "err-msg": "",
+    "count": 1
+}
+```
+
+Just take the JSON array from add_components or edit_components, edit as you wish and submit it back to edit_components.
+
+### <a name="api-route-28">Function: `delete_components`</a> [`top`](#top)
+
+Delete an existing component on a particular device.
+
+Route: /api/v0/devices/:hostname/components/:component
+
+- hostname can be either the device hostname or id
+- component is the component ID to be deleted.
+
+Example:
+```curl
+curl -X DELETE -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/components/4459
+```
+
+Output:
+
+```text
+{
+    "status": "ok",
+    "err-msg": ""
+}
+```
+
 ### <a name="api-route-8">Function: `get_port_stats_by_port_hostname`</a> [`top`](#top)
 
 Get information about a particular port for a device.
@@ -315,6 +513,7 @@ Input:
  - to: This is the date you would like the graph to end - See http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html for more information.
  - width: The graph width, defaults to 1075.
  - height: The graph height, defaults to 300.
+ - ifDescr: If this is set to true then we will use ifDescr to lookup the port instead of ifName. Pass the ifDescr value you want to search as you would ifName.
 
 Example:
 ```curl
@@ -434,14 +633,14 @@ Output:
 
 ### <a name="api-route-21">Function: `list_oxidized`</a> [`top`](#top)
 
-List devices for use with Oxidized.
+List devices for use with Oxidized. If you have group support enabled then a group will also be returned based on your config.
 
 Route: /api/v0/oxidized
 
 Input (JSON):
 
- - 
- 
+ -
+
 Examples:
 ```curl
 curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/oxidized
@@ -459,6 +658,183 @@ Output:
         "hostname": "otherserver",
         "os": "linux"
     }
+]
+```
+
+### <a name="api-route-update_device_field">Function: `update_device_field`</a> [`top`](#top)
+
+Update devices field in the database.
+
+Route: /api/v0/devices/:hostname
+
+- hostname can be either the device hostname or id
+
+Input (JSON):
+
+  - field: The column name within the database
+  - data: The data to update the column with
+
+Examples:
+```curl
+curl -X PATCH -d '{"field": "notes", "data": "This server should be kept online"}' -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost
+```
+
+Output:
+
+```text
+[
+    {
+        "status": "ok",
+        "message": "Device notes has been updated"
+    }
+]
+```
+
+### <a name="api-route-get_device_groups">Function `get_device_groups`</a> [`top`](#top)
+
+List the device groups that a device is matched on.
+
+Route: /api/v0/devices/:hostname/groups
+
+- hostname can be either the device hostname or id
+
+Input (JSON):
+
+  -
+
+Examples:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devices/localhost/groups
+```
+
+Output:
+```text
+[
+    {
+        "status": "ok",
+        "message": "Found 1 device groups",
+        "count": 1,
+        "groups": [
+        {
+            "id": "1",
+            "name": "Testing",
+            "desc": "Testing",
+            "pattern": "%devices.status = \"1\" &&"
+        }
+        ]
+    }
+]
+```
+
+## <a name="api-devicegroups">`Device Groups`</a> [`top`](#top)
+
+### <a name="api-route-get_devicegroups">Function `get_devicegroups`</a> [`top`](#top)
+
+List all device groups.
+
+Route: /api/v0/devicegroups
+
+Input (JSON):
+
+  -
+
+Examples:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devicegroups
+```
+
+Output:
+```text
+[
+    {
+        "status": "ok",
+        "message": "Found 1 device groups",
+        "count": 1,
+        "groups": [
+        {
+            "id": "1",
+            "name": "Testing",
+            "desc": "Testing",
+            "pattern": "%devices.status = \"1\" &&"
+        }
+        ]
+    }
+]
+```
+
+### <a name="api-route-get_devices_by_group">Function `get_devices_by_group`</a> [`top`](#top)
+
+List all devices matching the group provided.
+
+Route: /api/v0/devicegroups/:name
+
+- name Is the name of the device group which can be obtained using [`get_devicegroups`](#api-route-get_devicegroups). Please ensure that the name is urlencoded if it needs to be (i.e Linux Servers would need to be urlencoded.
+
+Input (JSON):
+
+  -
+
+Examples:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/devicegroups/LinuxServers
+```
+
+Output:
+```text
+[
+     {
+         "status": "error",
+         "message": "Found 1 in group LinuxServers",
+         "count": 1,
+         "devices": [
+             {
+                 "device_id": "1",
+                 "hostname": "localhost",
+                 "sysName": "hostname",
+                 "community": "librenms",
+                 "authlevel": null,
+                 "authname": null,
+                 "authpass": null,
+                 "authalgo": null,
+                 "cryptopass": null,
+                 "cryptoalgo": null,
+                 "snmpver": "v2c",
+                 "port": "161",
+                 "transport": "udp",
+                 "timeout": null,
+                 "retries": null,
+                 "bgpLocalAs": null,
+                 "sysObjectID": ".1.3.6.1.4.1.8072.3.2.10",
+                 "sysDescr": "Linux li1045-133.members.linode.com 4.1.5-x86_64-linode61 #7 SMP Mon Aug 24 13:46:31 EDT 2015 x86_64",
+                 "sysContact": "",
+                 "version": "4.1.5-x86_64-linode61",
+                 "hardware": "Generic x86 64-bit",
+                 "features": "CentOS 7.1.1503",
+                 "location": "",
+                 "os": "linux",
+                 "status": "1",
+                 "status_reason": "",
+                 "ignore": "0",
+                 "disabled": "0",
+                 "uptime": "4615964",
+                 "agent_uptime": "0",
+                 "last_polled": "2015-12-12 13:20:04",
+                 "last_poll_attempted": null,
+                 "last_polled_timetaken": "1.90",
+                 "last_discovered_timetaken": "79.53",
+                 "last_discovered": "2015-12-12 12:34:21",
+                 "last_ping": "2015-12-12 13:20:04",
+                 "last_ping_timetaken": "0.08",
+                 "purpose": null,
+                 "type": "server",
+                 "serial": null,
+                 "icon": null,
+                 "poller_group": "0",
+                 "override_sysLocation": "0",
+                 "notes": "Nope"
+             }
+         ]
+     }
 ]
 ```
 
@@ -491,6 +867,43 @@ Output:
 }
 ```
 
+### <a name="list_ipsec">Function: `list_ipsec`</a> [`top`](#top)
+
+List the current IPSec tunnels which are active.
+
+Route: /api/v0/routing/ipsec/data/:hostname
+
+- hostname can be either the device hostname or id
+
+Input:
+
+ -
+
+Example:
+```curl
+curl -H 'X-Auth-Token: YOURAPITOKENHERE' https://librenms.org/api/v0/routing/ipsec/data/localhost
+```
+
+Output:
+```text
+{
+    "status": "ok",
+    "err-msg": "",
+    "count": 0,
+    "ipsec": [
+        "tunnel_id": "1",
+        "device_id": "1",
+        "peer_port": "0",
+        "peer_addr": "127.0.0.1",
+        "local_addr": "127.0.0.2",
+        "local_port": "0",
+        "tunnel_name": "",
+        "tunnel_status": "active"
+    ]
+}
+```
+> Please note, this will only show active VPN sessions not all configured.
+
 ## <a name="api-switching">`Switching`</a> [`top`](#top)
 
 ### <a name="api-route-4">Function: `get_vlans`</a> [`top`](#top)
@@ -503,7 +916,7 @@ Route: /api/v0/devices/:hostname/vlans
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -539,7 +952,7 @@ Route: /api/v0/alerts/:id
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -576,7 +989,7 @@ Route: /api/v0/alerts/:id
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -588,7 +1001,7 @@ Output:
 {
  "status": "ok",
  "err-msg": "",
- "message": "Alert has been ackgnowledged"
+ "message": "Alert has been acknowledged"
 }
 ```
 
@@ -665,7 +1078,7 @@ Route: /api/v0/rules/:id
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -702,7 +1115,7 @@ Route: /api/v0/rules/:id
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -724,11 +1137,11 @@ List the alert rules.
 
 Route: /api/v0/rules
 
- - 
+ -
 
 Input:
 
- - 
+ -
 
 Example:
 ```curl
@@ -760,7 +1173,7 @@ Add a new alert rule.
 
 Route: /api/v0/rules
 
- - 
+ -
 
 Input (JSON):
 
@@ -769,7 +1182,7 @@ Input (JSON):
  - severity: The severity level the alert will be raised against, Ok, Warning, Critical.
  - disabled: Whether the rule will be disabled or not, 0 = enabled, 1 = disabled
  - count: This is how many polling runs before an alert will trigger and the frequency.
- - delay: Delay is when to start alerting and how frequently. The value is stored in seconds but you can specify minutes, hours or days by doing 5 m, 5 h, 5 d for each one. 
+ - delay: Delay is when to start alerting and how frequently. The value is stored in seconds but you can specify minutes, hours or days by doing 5 m, 5 h, 5 d for each one.
  - mute: If mute is enabled then an alert will never be sent but will show up in the Web UI (true or false).
  - invert: This would invert the rules check.
  - name: This is the name of the rule and is mandatory.
@@ -795,7 +1208,7 @@ Edit an existing alert rule
 
 Route: /api/v0/rules
 
- - 
+ -
 
 Input (JSON):
 
@@ -805,7 +1218,7 @@ Input (JSON):
  - severity: The severity level the alert will be raised against, Ok, Warning, Critical.
  - disabled: Whether the rule will be disabled or not, 0 = enabled, 1 = disabled
  - count: This is how many polling runs before an alert will trigger and the frequency.
- - delay: Delay is when to start alerting and how frequently. The value is stored in seconds but you can specify minutes, hours or days by doing 5 m, 5 h, 5 d for each one. 
+ - delay: Delay is when to start alerting and how frequently. The value is stored in seconds but you can specify minutes, hours or days by doing 5 m, 5 h, 5 d for each one.
  - mute: If mute is enabled then an alert will never be sent but will show up in the Web UI (true or false).
  - invert: This would invert the rules check.
  - name: This is the name of the rule and is mandatory.

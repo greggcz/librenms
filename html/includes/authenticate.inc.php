@@ -1,6 +1,5 @@
 <?php
 
-@ini_set('session.gc_maxlifetime', '0');
 @ini_set('session.use_only_cookies', 1);
 @ini_set('session.cookie_httponly', 1);
 require 'includes/PasswordHash.php';
@@ -62,7 +61,7 @@ else {
 $auth_success = 0;
 
 if ((isset($_SESSION['username'])) || (isset($_COOKIE['sess_id'],$_COOKIE['token']))) {
-    if ((authenticate($_SESSION['username'], $_SESSION['password'])) || (reauthenticate($_COOKIE['sess_id'], $_COOKIE['token']))) {
+    if (reauthenticate($_COOKIE['sess_id'], $_COOKIE['token']) || authenticate($_SESSION['username'], $_SESSION['password'])) {
         $_SESSION['userlevel'] = get_userlevel($_SESSION['username']);
         $_SESSION['user_id']   = get_userid($_SESSION['username']);
         if (!$_SESSION['authenticated']) {

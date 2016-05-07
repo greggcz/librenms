@@ -71,6 +71,9 @@ foreach ($periods as $period) {
         $graph_data[] = overlib_link($link, generate_lazy_graph_tag($graph_array), generate_graph_tag($graph_array_zoom),  NULL);
     }
     else {
+        echo "<div class='col-md-3'>";
         echo(overlib_link($link, generate_lazy_graph_tag($graph_array), generate_graph_tag($graph_array_zoom),  NULL));
+        echo "</div>";
     }
 }
+unset($graph_array);

@@ -15,15 +15,23 @@ On each of the hosts you would like to use the agent on then you need to do the 
 cd /opt/
 git clone https://github.com/librenms/librenms-agent.git
 cd librenms-agent
-cp check_mk_agent /usr/bin/check_mk_agent
+```
+
+Now copy the relevant check_mk_agent:
+
+| linux | freebsd |
+| --- | --- |
+| `cp check_mk_agent /usr/bin/check_mk_agent` | `cp check_mk_agent_freebsd /usr/bin/check_mk_agent` |
+
+```shell
 chmod +x /usr/bin/check_mk_agent
 ```
 
-* Copy the xinetd config file into place.
+* Copy the service file(s) into place.
 
-```shell
-cp check_mk_xinetd /etc/xinetd.d/check_mk
-```
+| xinetd | systemd |
+| --- | --- |
+| `cp check_mk_xinetd /etc/xinetd.d/check_mk` | `cp check_mk@.service check_mk.socket /etc/systemd/system` |
 
 * Create the relevant directories.
 
@@ -33,11 +41,12 @@ mkdir -p /usr/lib/check_mk_agent/plugins /usr/lib/check_mk_agent/local
 
 * Copy each of the scripts from `agent-local/` into `/usr/lib/check_mk_agent/local` that you require to be graphed.
 * Make each one executable that you want to use with `chmod +x /usr/lib/check_mk_agent/local/$script`
-* And restart xinetd.
+* Enable service scripts
 
-```shell
-/etc/init.d/xinetd restart
-```
+| xinetd | systemd |
+| --- | --- |
+| `/etc/init.d/xinetd restart` | `systemctl enable --now check_mk.socket` |
+
 
 * Login to the LibreNMS web interface and edit the device you want to monitor. Under the modules section, ensure that unix-agent is enabled.
 * Then under Applications, enable the apps that you plan to monitor.
@@ -65,7 +74,7 @@ options {
 ```
 Restart your bind9/named after changing the configuration.
 
-Verify that everything works by executing `rndc stats && cat /etc/bind/named.stats`.  
+Verify that everything works by executing `rndc stats && cat /etc/bind/named.stats`.
 In case you get a `Permission Denied` error, make sure you chown'ed correctly.
 
 Note: if you change the path you will need to change the path in `scripts/agent-local/bind`.
@@ -75,27 +84,27 @@ Note: if you change the path you will need to change the path in `scripts/agent-
 __Installation__:
 
 1. Get tinystats sources from http://www.morettoni.net/tinystats.en.html
-2. Compile like as advised.  
-  _Note_: In case you get `Makefile:9: *** missing separator.  Stop.`, compile manually using:  
-    * With IPv6: `gcc -Wall -O2 -fstack-protector -DWITH_IPV6 -o tinystats tinystats.c`  
-    * Without IPv6: `gcc -Wall -O2 -fstack-protector -o tinystats tinystats.c`  
-3. Install into prefered path, like `/usr/bin/`.
+2. Compile like as advised.
+  _Note_: In case you get `Makefile:9: *** missing separator.  Stop.`, compile manually using:
+    * With IPv6: `gcc -Wall -O2 -fstack-protector -DWITH_IPV6 -o tinystats tinystats.c`
+    * Without IPv6: `gcc -Wall -O2 -fstack-protector -o tinystats tinystats.c`
+3. Install into preferred path, like `/usr/bin/`.
 
 __Configuration__:
 
-_Note_: In this part we assume that you use DJB's [Daemontools](http://cr.yp.to/daemontools.html) to start/stop tinydns.  
-And that your tinydns-instance is located in `/service/dns`, adjust this path if necesary.
+_Note_: In this part we assume that you use DJB's [Daemontools](http://cr.yp.to/daemontools.html) to start/stop tinydns.
+And that your tinydns-instance is located in `/service/dns`, adjust this path if necessary.
 
-1. Replace your _log_'s `run` file, typically located in `/service/dns/log/run` with:  
+1. Replace your _log_'s `run` file, typically located in `/service/dns/log/run` with:
   ```
   #!/bin/sh
-  
+
   exec setuidgid dnslog tinystats ./main/tinystats/ multilog t n3 s250000 ./main/
   ```
-2. Create tinystats directory and chown:  
+2. Create tinystats directory and chown:
   `mkdir /service/dns/log/main/tinystats && chown dnslog:nofiles /service/dns/log/main/tinystats`
-3. Restart TinyDNS and Daemontools: `/etc/init.d/svscan restart`  
-   _Note_: Some say `svc -t /service/dns` is enough, on my install (Gentoo) it doesnt rehook the logging and I'm forced to restart it entirely.
+3. Restart TinyDNS and Daemontools: `/etc/init.d/svscan restart`
+   _Note_: Some say `svc -t /service/dns` is enough, on my install (Gentoo) it doesn't rehook the logging and I'm forced to restart it entirely.
 
 ### MySQL
 

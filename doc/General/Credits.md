@@ -28,13 +28,16 @@ LibreNMS ships with the following software components:
 
 - Code for UBNT Devices
   Mark Gibbons <mgibbons@oemcomp.com>
-  Initial code base submited via PR721
+  Initial code base submitted via PR721
 
 - Jquery LazyLoad
   http://www.appelsiini.net/projects/lazyload
-  Mika Tuupola <tuupola@appelsiini.net> (@tuupola on github)
+  Mika Tuupola <tuupola@appelsiini.net> (@tuupola on GitHub)
   MIT License
 
+- influxdb-php
+  https://github.com/influxdb/influxdb-php
+  MIT License
 
 Other components (needs details filled in):
 - JpGraph (html/includes/jpgraph): QPL 1.0 license

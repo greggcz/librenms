@@ -12,7 +12,7 @@
 
 $version = trim(snmp_get($device, "productVersion.0", "-OQv", "PULSESECURE-PSG-MIB"),'"');
 $hardware = "Juniper " . trim(snmp_get($device, "productName.0", "-OQv", "PULSESECURE-PSG-MIB"),'"');
-$hostname = trim(snmp_get($device, "sysName.0", "-OQv", "SNMPv2-MIB"),'"');
+$hostname = trim($poll_device['sysName'],'"');
 
 $usersrrd  = $config['rrd_dir'].'/'.$device['hostname'].'/pulse_users.rrd';
 $users = snmp_get($device, 'PULSESECURE-PSG-MIB::iveConcurrentUsers.0', '-OQv');
@@ -21,7 +21,12 @@ if (is_numeric($users)) {
     if (!is_file($usersrrd)) {
         rrdtool_create($usersrrd, ' DS:users:GAUGE:600:0:U'.$config['rrd_rra']);
     }
-    rrdtool_update($usersrrd, "N:$users");
+
+    $fields = array(
+        'users' => $users,
+    );
+
+    rrdtool_update($usersrrd, $fields);
     $graphs['pulse_users'] = true;
 }
 
@@ -32,6 +37,11 @@ if (is_numeric($sessions)) {
     if (!is_file($sessrrd)) {
         rrdtool_create($sessrrd, ' DS:sessions:GAUGE:600:0:U '.$config['rrd_rra']);
     }
-    rrdtool_update($sessrrd, "N:$sessions");
+
+    $fields = array(
+        'sessions' => $sessions,
+    );
+
+    rrdtool_update($sessrrd, $fields);
     $graphs['pulse_sessions'] = true;
 }

@@ -17,6 +17,18 @@ $oxidized_conf = array(
           'descr'              => 'Enable config versioning access',
           'type'               => 'checkbox',
     ),
+    array('name'               => 'oxidized.group_support',
+          'descr'              => 'Enable the return of groups to Oxidized',
+          'type'               => 'checkbox',
+    ),
+    array('name'               => 'oxidized.default_group',
+          'descr'              => 'Set the default group returned',
+          'type'               => 'text',
+    ),
+    array('name'               => 'oxidized.reload_nodes',
+          'descr'              => 'Reload Oxidized nodes list, each time a device is added',
+          'type'               => 'checkbox',
+    ),
 );
 
 $unixagent_conf = array(

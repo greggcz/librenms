@@ -209,6 +209,8 @@ function generate_device_link($device, $text=null, $vars=array(), $start=0, $end
         $text = $device['hostname'];
     }
 
+    $text = ip_to_sysname($device,$text);
+
     if (isset($config['os'][$device['os']]['over'])) {
         $graphs = $config['os'][$device['os']]['over'];
     }
@@ -461,6 +463,7 @@ function generate_graph_tag($args) {
 }//end generate_graph_tag()
 
 function generate_lazy_graph_tag($args) {
+    global $config;
     $urlargs = array();
     $w = 0;
     $h = 0;
@@ -472,11 +475,23 @@ function generate_lazy_graph_tag($args) {
             case 'height':
                 $h = $arg;
                 break;
+            case 'lazy_w':
+                $lazy_w = $arg;
+                break;
         }
         $urlargs[] = $key."=".urlencode($arg);
     }
 
-    return '<img class="lazy graphs" width="'.$w.'" height="'.$h.'" data-original="graph.php?' . implode('&amp;',$urlargs).'" border="0" />';
+    if(isset($lazy_w)) {
+        $w=$lazy_w;
+    }
+
+    if ($config['enable_lazy_load'] === true) {
+        return '<img class="lazy img-responsive" data-original="graph.php?' . implode('&amp;',$urlargs).'" border="0" />';
+    }
+    else {
+        return '<img class="img-responsive" src="graph.php?' . implode('&amp;',$urlargs).'" border="0" />';
+    }
 
 }//end generate_lazy_graph_tag()
 
@@ -1147,6 +1162,16 @@ function alert_details($details) {
 
         if ($tmp_alerts['port_id']) {
             $fault_detail .= generate_port_link($tmp_alerts).';&nbsp;';
+            $fallback      = false;
+        }
+
+        if ($tmp_alerts['type'] && $tmp_alerts['label']) {
+            if ($tmp_alerts['error'] == "") {
+                $fault_detail .= ' '.$tmp_alerts['type'].' - '.$tmp_alerts['label'].';&nbsp;';
+            }
+            else {
+                $fault_detail .= ' '.$tmp_alerts['type'].' - '.$tmp_alerts['label'].' - '.$tmp_alerts['error'].';&nbsp;';
+            }
             $fallback      = false;
         }
 

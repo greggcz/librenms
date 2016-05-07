@@ -1,6 +1,5 @@
 <?php
 
-// Observium Includes
 require_once $config['install_dir'].'/includes/dbFacile.php';
 require_once $config['install_dir'].'/includes/mergecnf.inc.php';
 
@@ -96,6 +95,16 @@ $config['os'][$os]['over'][1]['text']  = 'Processor Usage';
 $config['os'][$os]['over'][2]['graph'] = 'device_ucd_memory';
 $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
 
+$os = 'viprinux';
+$config['os'][$os]['text']             = 'Viprinux';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['icon']             = 'viprinux';
+$config['os'][$os]['ifname']           = 1;
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'Processor Usage';
+
 $os = 'edgeos';
 $config['os'][$os]['text']             = 'EdgeOS';
 $config['os'][$os]['type']             = 'network';
@@ -110,6 +119,7 @@ $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
 $os = 'infinity';
 $config['os'][$os]['text']             = 'LigoWave Infinity';
 $config['os'][$os]['type']             = 'wireless';
+$config['os'][$os]['icon']             = 'ligowave';
 $config['os'][$os]['nobulk']           = 1;
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
@@ -117,6 +127,12 @@ $config['os'][$os]['over'][1]['graph'] = 'device_processor';
 $config['os'][$os]['over'][1]['text']  = 'Processor Usage';
 $config['os'][$os]['over'][2]['graph'] = 'device_mempool';
 $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+// Time server
+$os = 'microsemitime';
+$config['os'][$os]['text']             = 'Microsemi Timing';
+$config['os'][$os]['type']             = 'timing';
+$config['os'][$os]['icon']             = 'microsemi';
 
 // Ubiquiti
 $os = 'unifi';
@@ -163,10 +179,16 @@ $config['os'][$os]['over'][2]['graph'] = 'device_storage';
 $config['os'][$os]['over'][2]['text']  = 'Storage Usage';
 
 $os = 'qnap';
-$config['os'][$os]['type']    = 'storage';
-$config['os'][$os]['group']   = 'unix';
-$config['os'][$os]['text']    = 'QNAP TurboNAS';
-$config['os'][$os]['ifXmcbc'] = 1;
+$config['os'][$os]['type']             = 'storage';
+$config['os'][$os]['group']            = 'unix';
+$config['os'][$os]['text']             = 'QNAP TurboNAS';
+$config['os'][$os]['ifXmcbc']          = 1;
+$config['os'][$os]['over'][0]['graph'] = 'device_processor';
+$config['os'][$os]['over'][0]['text']  = 'Processor Usage';
+$config['os'][$os]['over'][1]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][1]['text']  = 'Memory Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_storage';
+$config['os'][$os]['over'][2]['text']  = 'Storage Usage';
 
 $os = 'netapp';
 $config['os'][$os]['type']             = 'storage';
@@ -215,6 +237,30 @@ $config['os'][$os]['type']             = 'network';
 $config['os'][$os]['group']            = 'unix';
 $config['os'][$os]['text']             = 'Procera Networks';
 $config['os'][$os]['icon']             = 'procera';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'Processor Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+$os = 'pktj';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['group']            = 'unix';
+$config['os'][$os]['text']             = 'Gandi Packet Journey';
+$config['os'][$os]['icon']             = 'gandi';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'Processor Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+$os = 'cumulus';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['group']            = 'unix';
+$config['os'][$os]['text']             = 'Cumulus Linux';
+$config['os'][$os]['icon']             = 'cumulus';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
 $config['os'][$os]['over'][1]['graph'] = 'device_processor';
@@ -304,6 +350,35 @@ $config['os'][$os]['type']             = 'loadbalancer';
 $config['os'][$os]['icon']             = 'barracuda';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+$os = 'barracudaspamfirewall';
+$config['os'][$os]['text']             = 'Barracuda Spam Firewall';
+$config['os'][$os]['type']             = 'firewall';
+$config['os'][$os]['icon']             = 'barracuda';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+// Calix
+$os = 'calix';
+$config['os'][$os]['text']             = 'Calix E7';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['ifname']           = 1;
+$config['os'][$os]['empty_ifdescr']    = 1;
+$config['os'][$os]['icon']             = 'calix';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+
+// BDCom
+$os = 'bdcom';
+$config['os'][$os]['text']             = 'Calix E7';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['icon']             = 'bdcom';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'Processor Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
 
 // Cisco OSes
 $os = 'ios';
@@ -452,7 +527,19 @@ $os = 'nos';
 $config['os'][$os]['text']             = 'Brocade NOS';
 $config['os'][$os]['type']             = 'network';
 $config['os'][$os]['ifname']           = 1;
-$config['os'][$os]['descr_to_alias']   = 1;
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+$config['os'][$os]['icon']             = 'brocade';
+
+// Brocade/Foundry ServerIron
+$os = 'serveriron';
+$config['os'][$os]['text']             = 'Brocade ServerIron';
+$config['os'][$os]['type']             = 'loadbalancer';
+$config['os'][$os]['ifname']           = 1;
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
 $config['os'][$os]['over'][1]['graph'] = 'device_processor';
@@ -487,6 +574,12 @@ $config['os'][$os]['text']  = 'ZTE ZXR10';
 $config['os'][$os]['type']  = 'network';
 $config['os'][$os]['icon']  = 'zte';
 
+// Cisco WAP
+$os = 'ciscowap';
+$config['os'][$os]['text']             = 'Cisco Wireless Acess Point';
+$config['os'][$os]['type']             = 'wireless';
+$config['os'][$os]['icon']             = 'cisco';
+
 // Ruckus Wireless
 $os = 'ruckuswireless';
 $config['os'][$os]['text']             = 'Ruckus Wireless';
@@ -508,6 +601,14 @@ $os = 'saf';
 $config['os'][$os]['text']             = 'SAF Wireless';
 $config['os'][$os]['type']             = 'wireless';
 $config['os'][$os]['icon']             = 'saf';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+// Sub10
+$os = 'sub10';
+$config['os'][$os]['text']             = 'Sub10 Systems';
+$config['os'][$os]['type']             = 'wireless';
+$config['os'][$os]['icon']             = 'sub10';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Traffic';
 
@@ -584,6 +685,13 @@ $config['os'][$os]['over'][1]['text']  = 'CPU Usage';
 $config['os'][$os]['over'][2]['graph'] = 'device_mempool';
 $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
 
+$os = 'juniperex2500os';
+$config['os'][$os]['text']             = 'Juniper EX2500';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['icon']             = 'junos';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+
 // Pulse Secure OS definition
 $os = 'pulse';
 $config['os'][$os]['text']             = 'Pulse Secure';
@@ -614,6 +722,17 @@ $config['os'][$os]['nobulk']           = 1;
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
 $config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+$os = 'bintec-smart';
+$config['os'][$os]['text']             = 'Bintec Smart Router';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['icon']             = 'bintec';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_fortigate_cpu';
 $config['os'][$os]['over'][1]['text']  = 'CPU Usage';
 $config['os'][$os]['over'][2]['graph'] = 'device_mempool';
 $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
@@ -764,11 +883,39 @@ $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
 $config['os'][$os]['over'][1]['graph'] = 'device_processor';
 $config['os'][$os]['over'][1]['text']  = 'CPU Usage';
-// $config['os'][$os]['over'][2]['graph']  = "device_mempool";
-// $config['os'][$os]['over'][2]['text']   = "Memory Usage";
+
 $os = 'powervault';
-$config['os'][$os]['text'] = 'Dell PowerVault';
-$config['os'][$os]['icon'] = 'dell';
+$config['os'][$os]['text']             = 'Dell PowerVault';
+$config['os'][$os]['icon']             = 'dell';
+$config['os'][$os]['type']             = 'storage';
+
+// Data domain
+$os = 'datadomain';
+$config['os'][$os]['text'] = 'EMC Data Domain';
+$config['os'][$os]['type'] = 'storage';
+$config['os'][$os]['icon'] = 'emc';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text'] = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text'] = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text'] = 'Memory Usage';
+$config['os'][$os]['over'][3]['graph'] = 'device_storage';
+$config['os'][$os]['over'][3]['text'] = 'Storage Usage';
+
+// EMC Isilon OneFS
+$os = 'onefs';
+$config['os'][$os]['text'] = 'EMC Isilon OneFS';
+$config['os'][$os]['type'] = 'storage';
+$config['os'][$os]['icon'] = 'emc';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text'] = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text'] = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text'] = 'Memory Usage';
+$config['os'][$os]['over'][3]['graph'] = 'device_storage';
+$config['os'][$os]['over'][3]['text'] = 'Storage Usage';
 
 $os = 'equallogic';
 $config['os'][$os]['text']             = 'Dell EqualLogic';
@@ -847,6 +994,11 @@ $os = 'liebert';
 $config['os'][$os]['text'] = 'Liebert';
 $config['os'][$os]['type'] = 'power';
 $config['os'][$os]['icon'] = 'liebert';
+
+$os = 'powerwalker';
+$config['os'][$os]['text'] = 'PowerWalker UPS';
+$config['os'][$os]['type'] = 'power';
+$config['os'][$os]['icon'] = 'powerwalker';
 
 $os = 'engenius';
 $config['os'][$os]['type']             = 'wireless';
@@ -934,12 +1086,23 @@ $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Traffic';
 $config['os'][$os]['icon']             = 'zyxel';
 
+$os = 'sophos';
+$config['os'][$os]['text']             = 'Sophos UTM Firewall';
+$config['os'][$os]['type']             = 'firewall';
+$config['os'][$os]['icon']             = 'sophos';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
 $os = 'prestige';
 $config['os'][$os]['text'] = 'ZyXEL Prestige';
 $config['os'][$os]['type'] = 'network';
 $config['os'][$os]['icon'] = 'zyxel';
 
-$os = 'zyxeles';
+$os = 'zynos';
 $config['os'][$os]['text'] = 'ZyXEL Ethernet Switch';
 $config['os'][$os]['type'] = 'network';
 $config['os'][$os]['icon'] = 'zyxel';
@@ -985,6 +1148,13 @@ $config['os'][$os]['text']             = 'WebPower';
 $config['os'][$os]['type']             = 'power';
 $config['os'][$os]['over'][0]['graph'] = 'device_current';
 $config['os'][$os]['over'][0]['text']  = 'Current';
+
+$os = 'avtech';
+$config['os'][$os]['text']             = 'Avtech Environment Sensor';
+$config['os'][$os]['type']             = 'environment';
+$config['os'][$os]['icon']             = 'avtech';
+$config['os'][$os]['over'][0]['graph'] = 'device_temperature';
+$config['os'][$os]['over'][0]['text']  = 'Temperature';
 
 $os = 'netbotz';
 $config['os'][$os]['text']             = 'Netbotz Environment sensor';
@@ -1063,6 +1233,7 @@ $config['os'][$os]['icon']             = 'comet';
 $config['os'][$os]['over'][0]['graph'] = 'device_temperature';
 $config['os'][$os]['over'][0]['text']  = 'temperature';
 
+    //printer
 $os = 'dell-laser';
 $config['os'][$os]['group']            = 'printer';
 $config['os'][$os]['text']             = 'Dell Laser';
@@ -1149,6 +1320,37 @@ $config['os'][$os]['over'][0]['graph'] = 'device_toner';
 $config['os'][$os]['over'][0]['text']  = 'Toner';
 $config['os'][$os]['ifname']           = 1;
 $config['os'][$os]['type']             = 'printer';
+
+$os ='samsungprinter';
+$config['os'][$os]['group']            = 'printer';
+$config['os'][$os]['text']             = 'Samsung Printer';
+$config['os'][$os]['type']             = 'printer';
+$config['os'][$os]['over'][0]['graph'] = 'device_toner';
+$config['os'][$os]['over'][0]['text']  = 'Toner';
+
+$os ='canonprinter';
+$config['os'][$os]['group']            = 'printer';
+$config['os'][$os]['text']             = 'Canon Printer';
+$config['os'][$os]['type']             = 'printer';
+$config['os'][$os]['icon']             = 'canon';
+$config['os'][$os]['over'][0]['graph'] = 'device_toner';
+$config['os'][$os]['over'][0]['text']  = 'Toner';
+
+$os ='lexmarkprinter';
+$config['os'][$os]['group']            = 'printer';
+$config['os'][$os]['text']             = 'Lexmark Printer';
+$config['os'][$os]['type']             = 'printer';
+$config['os'][$os]['icon']             = 'lexmark';
+$config['os'][$os]['over'][0]['graph'] = 'device_toner';
+$config['os'][$os]['over'][0]['text']  = 'Toner';
+
+$os ='developprinter';
+$config['os'][$os]['group']            = 'printer';
+$config['os'][$os]['text']             = 'Develop Printer';
+$config['os'][$os]['type']             = 'printer';
+$config['os'][$os]['icon']             = 'develop';
+$config['os'][$os]['over'][0]['graph'] = 'device_toner';
+$config['os'][$os]['over'][0]['text']  = 'Toner';
 
 $os = '3com';
 $config['os'][$os]['text']             = '3Com';
@@ -1237,6 +1439,12 @@ $config['os'][$os]['text']  = 'Synology DSM';
 $config['os'][$os]['group'] = 'unix';
 $config['os'][$os]['type']  = 'storage';
 $config['os'][$os]['icon']  = 'synology';
+$config['os'][$os]['over'][0]['graph'] = 'device_processor';
+$config['os'][$os]['over'][0]['text']  = 'Processor Usage';
+$config['os'][$os]['over'][1]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][1]['text']  = 'Memory Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_storage';
+$config['os'][$os]['over'][2]['text']  = 'Storage Usage';
 
 $os = 'hikvision';
 $config['os'][$os]['text'] = 'Hikvision';
@@ -1244,8 +1452,15 @@ $config['os'][$os]['type'] = 'network';
 $config['os'][$os]['icon'] = 'hikvision';
 
 // Canopy / Cambium support
-$os = 'canopy';
+$os = 'cambium';
 $config['os'][$os]['text'] = 'Cambium';
+$config['os'][$os]['type'] = 'wireless';
+$config['os'][$os]['icon'] = 'cambium';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+
+$os = 'canopy';
+$config['os'][$os]['text'] = 'Canopy';
 $config['os'][$os]['type'] = 'wireless';
 $config['os'][$os]['icon'] = 'cambium';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
@@ -1278,6 +1493,10 @@ $config['os'][$os]['type']             = 'network';
 $config['os'][$os]['ifXmcbc']          = 1;
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
 $config['os'][$os]['icon']             = 'pbn';
 
 // Enterasys
@@ -1372,6 +1591,14 @@ $config['os'][$os]['icon']             = 'hp';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Traffic';
 
+// HP Virtual Connect
+$os = 'hpvc';
+$config['os'][$os]['text']             = 'HP Virtual Connect';
+$config['os'][$os]['type']             = 'network';
+$config['os'][$os]['icon']             = 'hp';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+
 // Riverbed
 $os = 'riverbed';
 $config['os'][$os]['text']             = 'Riverbed';
@@ -1379,6 +1606,30 @@ $config['os'][$os]['type']             = 'network';
 $config['os'][$os]['icon']             = 'riverbed';
 $config['os'][$os]['over'][0]['graph'] = 'device_bits';
 $config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+// Ligowave LigoOS
+$os = 'ligoos';
+$config['os'][$os]['text']             = 'LigoWave LigoOS';
+$config['os'][$os]['type']             = 'wireless';
+$config['os'][$os]['icon']             = 'ligowave';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+// HWGroup Poseidon
+$os = 'poseidon';
+$config['os'][$os]['text']             = 'Poseidon';
+$config['os'][$os]['type']             = 'environment';
+$config['os'][$os]['icon']             = 'poseidon';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Traffic';
+
+// EATON PDU
+$os = 'eatonpdu';
+$config['os'][$os]['text']             = 'Eaton PDU';
+$config['os'][$os]['type']             = 'power';
+$config['os'][$os]['icon']             = 'eaton';
+$config['os'][$os]['over'][0]['graph'] = 'device_current';
+$config['os'][$os]['over'][0]['text']  = 'Current';
 
 // Appliances
 $os = 'fortios';
@@ -1391,6 +1642,32 @@ $config['os'][$os]['over'][1]['graph'] = 'device_processor';
 $config['os'][$os]['over'][1]['text']  = 'CPU Usage';
 $config['os'][$os]['over'][2]['graph'] = 'device_mempool';
 $config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+$os = 'nios';
+$config['os'][$os]['text']             = 'Infoblox';
+$config['os'][$os]['type']             = 'appliance';
+$config['os'][$os]['icon']             = 'infoblox';
+
+// Lenovo EMC (NAS)
+$os = 'lenovoemc';
+$config['os'][$os]['type']             = 'storage';
+$config['os'][$os]['group']            = 'storage';
+$config['os'][$os]['text']             = 'LenovoEMC';
+$config['os'][$os]['icon']             = 'lenovo';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
+$config['os'][$os]['over'][1]['graph'] = 'device_processor';
+$config['os'][$os]['over'][1]['text']  = 'CPU Usage';
+$config['os'][$os]['over'][2]['graph'] = 'device_mempool';
+$config['os'][$os]['over'][2]['text']  = 'Memory Usage';
+
+// Deliberant WiFi
+$os = 'deliberant';
+$config['os'][$os]['text']             = 'Deliberant OS';
+$config['os'][$os]['type']             = 'wireless';
+$config['os'][$os]['icon']             = 'deliberant';
+$config['os'][$os]['over'][0]['graph'] = 'device_bits';
+$config['os'][$os]['over'][0]['text']  = 'Device Traffic';
 
 // Graph Types
 require_once $config['install_dir'].'/includes/load_db_graph_types.inc.php';
@@ -1519,6 +1796,141 @@ $config['graph_types']['device']['siklu_rfinterfaceOtherOctets']['section'] = 'w
 $config['graph_types']['device']['siklu_rfinterfaceOtherOctets']['order'] = '6';
 $config['graph_types']['device']['siklu_rfinterfaceOtherOctets']['descr'] = 'Other Octets';
 
+// Sub10 support
+$config['graph_types']['device']['sub10_sub10RadioLclTxPower']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclTxPower']['order'] = '0';
+$config['graph_types']['device']['sub10_sub10RadioLclTxPower']['descr'] = 'Radio Transmit Power';
+
+$config['graph_types']['device']['sub10_sub10RadioLclRxPower']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclRxPower']['order'] = '1';
+$config['graph_types']['device']['sub10_sub10RadioLclRxPower']['descr'] = 'Radio Receive Power';
+
+$config['graph_types']['device']['sub10_sub10RadioLclVectErr']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclVectErr']['order'] = '3';
+$config['graph_types']['device']['sub10_sub10RadioLclVectErr']['descr'] = 'Radio Vector Error';
+
+$config['graph_types']['device']['sub10_sub10RadioLclLnkLoss']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclLnkLoss']['order'] = '3';
+$config['graph_types']['device']['sub10_sub10RadioLclLnkLoss']['descr'] = 'Radio Link Loss';
+
+$config['graph_types']['device']['sub10_sub10RadioLclAFER']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclAFER']['order'] = '4';
+$config['graph_types']['device']['sub10_sub10RadioLclAFER']['descr'] = 'Radio Air Frame Error Rate';
+
+$config['graph_types']['device']['sub10_sub10RadioLclDataRate']['section'] = 'wireless';
+$config['graph_types']['device']['sub10_sub10RadioLclDataRate']['order'] = '4';
+$config['graph_types']['device']['sub10_sub10RadioLclDataRate']['descr'] = 'Data Rate on the Airside interface';
+
+//cambium graphs
+$config['graph_types']['device']['cambium_650_rawReceivePower']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_rawReceivePower']['order']   = '0';
+$config['graph_types']['device']['cambium_650_rawReceivePower']['descr']   = 'Raw Receive Power';
+$config['graph_types']['device']['cambium_650_transmitPower']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_transmitPower']['order']   = '1';
+$config['graph_types']['device']['cambium_650_transmitPower']['descr']   = 'Transmit Power';
+$config['graph_types']['device']['cambium_650_modulationMode']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_modulationMode']['order']   = '2';
+$config['graph_types']['device']['cambium_650_modulationMode']['descr']   = 'Moduation Mode';
+$config['graph_types']['device']['cambium_650_dataRate']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_dataRate']['order']   = '3';
+$config['graph_types']['device']['cambium_650_dataRate']['descr']   = 'Data Rate';
+$config['graph_types']['device']['cambium_650_ssr']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_ssr']['order']   = '4';
+$config['graph_types']['device']['cambium_650_ssr']['descr']   = 'Signal Strength Ratio';
+$config['graph_types']['device']['cambium_650_gps']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_650_gps']['order']   = '5';
+$config['graph_types']['device']['cambium_650_gps']['descr']   = 'GPS Status';
+
+$config['graph_types']['device']['cambium_250_receivePower']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_250_receivePower']['order']   = '0';
+$config['graph_types']['device']['cambium_250_receivePower']['descr']   = 'Raw Receive Power';
+$config['graph_types']['device']['cambium_250_transmitPower']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_250_transmitPower']['order']   = '1';
+$config['graph_types']['device']['cambium_250_transmitPower']['descr']   = 'Transmit Power';
+$config['graph_types']['device']['cambium_250_modulationMode']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_250_modulationMode']['order']   = '2';
+$config['graph_types']['device']['cambium_250_modulationMode']['descr']   = 'Moduation Mode';
+$config['graph_types']['device']['cambium_250_dataRate']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_250_dataRate']['order']   = '3';
+$config['graph_types']['device']['cambium_250_dataRate']['descr']   = 'Data Rate';
+$config['graph_types']['device']['cambium_250_ssr']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_250_ssr']['order']   = '4';
+$config['graph_types']['device']['cambium_250_ssr']['descr']   = 'Signal Strength Ratio';
+
+$config['graph_types']['device']['canopy_generic_whispGPSStats']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_whispGPSStats']['order']   = '0';
+$config['graph_types']['device']['canopy_generic_whispGPSStats']['descr']   = 'GPS Status';
+$config['graph_types']['device']['canopy_generic_gpsStats']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_gpsStats']['order']   = '0';
+$config['graph_types']['device']['canopy_generic_gpsStats']['descr']   = 'GPS Stats';
+$config['graph_types']['device']['canopy_generic_rssi']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_rssi']['order']   = '1';
+$config['graph_types']['device']['canopy_generic_rssi']['descr']   = 'Signal Rssi';
+$config['graph_types']['device']['canopy_generic_jitter']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_jitter']['order']   = '2';
+$config['graph_types']['device']['canopy_generic_jitter']['descr']   = 'Jitter';
+$config['graph_types']['device']['canopy_generic_signalHV']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_signalHV']['order']   = '3';
+$config['graph_types']['device']['canopy_generic_signalHV']['descr']   = 'Signal';
+$config['graph_types']['device']['canopy_generic_450_powerlevel']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_powerlevel']['order']   = '4';
+$config['graph_types']['device']['canopy_generic_450_powerlevel']['descr']   = 'Power Level of Registered SM';
+$config['graph_types']['device']['canopy_generic_450_linkRadioDbm']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_linkRadioDbm']['order']   = '5';
+$config['graph_types']['device']['canopy_generic_450_linkRadioDbm']['descr']   = 'Radio Link H/V';
+$config['graph_types']['device']['canopy_generic_450_ptpSNR']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_ptpSNR']['order']   = '6';
+$config['graph_types']['device']['canopy_generic_450_ptpSNR']['descr']   = 'Master SNR';
+$config['graph_types']['device']['canopy_generic_450_slaveHV']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_slaveHV']['order']   = '7';
+$config['graph_types']['device']['canopy_generic_450_slaveHV']['descr']   = 'Dbm H/V';
+$config['graph_types']['device']['canopy_generic_450_slaveSNR']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_slaveSNR']['order']   = '8';
+$config['graph_types']['device']['canopy_generic_450_slaveSNR']['descr']   = 'SNR';
+$config['graph_types']['device']['canopy_generic_450_slaveSSR']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_slaveSSR']['order']   = '9';
+$config['graph_types']['device']['canopy_generic_450_slaveSSR']['descr']   = 'SSR';
+$config['graph_types']['device']['canopy_generic_450_masterSSR']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_450_masterSSR']['order']   = '10';
+$config['graph_types']['device']['canopy_generic_450_masterSSR']['descr']   = 'Master SSR';
+$config['graph_types']['device']['canopy_generic_regCount']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_regCount']['order']   = '11';
+$config['graph_types']['device']['canopy_generic_regCount']['descr']   = 'Registered SM';
+$config['graph_types']['device']['canopy_generic_freq']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_freq']['order']   = '12';
+$config['graph_types']['device']['canopy_generic_freq']['descr']   = 'Radio Frequency';
+$config['graph_types']['device']['canopy_generic_radioDbm']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_radioDbm']['order']   = '13';
+$config['graph_types']['device']['canopy_generic_radioDbm']['descr']   = 'Radio Dbm';
+$config['graph_types']['device']['canopy_generic_errorCount']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_errorCount']['order']   = '14';
+$config['graph_types']['device']['canopy_generic_errorCount']['descr']   = 'Error Count';
+$config['graph_types']['device']['canopy_generic_crcErrors']['section'] = 'wireless';
+$config['graph_types']['device']['canopy_generic_crcErrors']['order']   = '15';
+$config['graph_types']['device']['canopy_generic_crcErrors']['descr']   = 'CRC Errors';
+
+$config['graph_types']['device']['cambium_epmp_RFStatus']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_RFStatus']['order']   = '0';
+$config['graph_types']['device']['cambium_epmp_RFStatus']['descr']   = 'RF Status';
+$config['graph_types']['device']['cambium_epmp_gps']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_gps']['order']   = '1';
+$config['graph_types']['device']['cambium_epmp_gps']['descr']   = 'GPS Info';
+$config['graph_types']['device']['cambium_epmp_modulation']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_modulation']['order']   = '2';
+$config['graph_types']['device']['cambium_epmp_modulation']['descr']   = 'ePMP Modulation';
+$config['graph_types']['device']['cambium_epmp_registeredSM']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_registeredSM']['order']   = '3';
+$config['graph_types']['device']['cambium_epmp_registeredSM']['descr']   = 'ePMP Registered SM';
+$config['graph_types']['device']['cambium_epmp_access']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_access']['order']   = '4';
+$config['graph_types']['device']['cambium_epmp_access']['descr']   = 'Access Info';
+$config['graph_types']['device']['cambium_epmp_gpsSync']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_gpsSync']['order']   = '5';
+$config['graph_types']['device']['cambium_epmp_gpsSync']['descr']   = 'GPS Sync Status';
+$config['graph_types']['device']['cambium_epmp_freq']['section'] = 'wireless';
+$config['graph_types']['device']['cambium_epmp_freq']['order']   = '6';
+$config['graph_types']['device']['cambium_epmp_freq']['descr']   = 'Frequency';
+
 $config['graph_types']['device']['wifi_clients']['section'] = 'wireless';
 $config['graph_types']['device']['wifi_clients']['order']   = '0';
 $config['graph_types']['device']['wifi_clients']['descr']   = 'Wireless Clients';
@@ -1562,6 +1974,20 @@ $config['graph_types']['device']['pulse_users']['descr']           = 'Active Use
 $config['graph_types']['device']['pulse_sessions']['section']      = 'firewall';
 $config['graph_types']['device']['pulse_sessions']['order']        = '0';
 $config['graph_types']['device']['pulse_sessions']['descr']        = 'Active Sessions';
+
+// Infoblox dns/dhcp Graphs
+$config['graph_types']['device']['ib_dns_dyn_updates']['section']             = 'dns';
+$config['graph_types']['device']['ib_dns_dyn_updates']['order']               = '0';
+$config['graph_types']['device']['ib_dns_dyn_updates']['descr']               = 'DNS dynamic updates';
+$config['graph_types']['device']['ib_dns_request_return_codes']['section']    = 'dns';
+$config['graph_types']['device']['ib_dns_request_return_codes']['order']      = '0';
+$config['graph_types']['device']['ib_dns_request_return_codes']['descr']      = 'DNS request return codes';
+$config['graph_types']['device']['ib_dns_performance']['section']             = 'dns';
+$config['graph_types']['device']['ib_dns_performance']['order']               = '0';
+$config['graph_types']['device']['ib_dns_performance']['descr']               = 'DNS performance';
+$config['graph_types']['device']['ib_dhcp_messages']['section']               = 'dhcp';
+$config['graph_types']['device']['ib_dhcp_messages']['order']                 = '0';
+$config['graph_types']['device']['ib_dhcp_messages']['descr']                 = 'DHCP messages';
 
 $config['graph_types']['device']['bits']['section']               = 'netstats';
 $config['graph_types']['device']['bits']['order']                 = '0';
@@ -1662,6 +2088,9 @@ $config['graph_types']['device']['poller_perf']['descr']      = 'Poller Time';
 $config['graph_types']['device']['ping_perf']['section']      = 'poller';
 $config['graph_types']['device']['ping_perf']['order']        = '0';
 $config['graph_types']['device']['ping_perf']['descr']        = 'Ping Response';
+$config['graph_types']['device']['poller_modules_perf']['section']    = 'poller';
+$config['graph_types']['device']['poller_modules_perf']['order']      = '0';
+$config['graph_types']['device']['poller_modules_perf']['descr']      = 'Poller Modules Performance';
 
 $config['graph_types']['device']['vpdn_sessions_l2tp']['section'] = 'vpdn';
 $config['graph_types']['device']['vpdn_sessions_l2tp']['order']   = '0';
@@ -1705,6 +2134,14 @@ $config['graph_types']['device']['cisco-iosxcode']['descr']    = 'Transcoder Uti
 
 $config['graph_descr']['device_smokeping_in_all'] = 'This is an aggregate graph of the incoming smokeping tests to this host. The line corresponds to the average RTT. The shaded area around each line denotes the standard deviation.';
 $config['graph_descr']['device_processor']        = 'This is an aggregate graph of all processors in the system.';
+
+$config['graph_types']['device']['cisco_wwan_rssi']['section'] = 'wireless';
+$config['graph_types']['device']['cisco_wwan_rssi']['order']   = '0';
+$config['graph_types']['device']['cisco_wwan_rssi']['descr']   = 'Signal Rssi';
+$config['graph_types']['device']['cisco_wwan_mnc']['section']  = 'wireless';
+$config['graph_types']['device']['cisco_wwan_mnc']['order']    = '1';
+$config['graph_types']['device']['cisco_wwan_mnc']['descr']    = 'MNC';
+
 
 // Device Types
 $i = 0;
@@ -1768,10 +2205,6 @@ $config['project_name_version'] = $config['project_name'].' '.$config['version']
 if (isset($config['rrdgraph_def_text'])) {
     $config['rrdgraph_def_text'] = str_replace('  ', ' ', $config['rrdgraph_def_text']);
     $config['rrd_opts_array']    = explode(' ', trim($config['rrdgraph_def_text']));
-}
-
-if (!isset($config['log_file'])) {
-    $config['log_file'] = $config['log_dir'].'/'.$config['project_id'].'.log';
 }
 
 if (isset($config['cdp_autocreate'])) {
@@ -1842,7 +2275,7 @@ if (!isset($config['log_dir'])) {
 }
 
 if (!isset($config['log_file'])) {
-    $config['log_dir'].'/'.$config['project_id'].'.log';
+    $config['log_file'] = $config['log_dir'].'/'.$config['project_id'].'.log';
 }
 
 if (!isset($config['plugin_dir'])) {

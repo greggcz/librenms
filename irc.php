@@ -416,7 +416,7 @@ class ircbot {
 
     private function chkdb() {
         if (!is_resource($this->sql)) {
-            if (($this->sql = mysql_connect($this->config['db_host'], $this->config['db_user'], $this->config['db_pass'])) != false && mysql_select_db($this->config['db_name'])) {
+            if (($this->sql = mysqli_connect($this->config['db_host'], $this->config['db_user'], $this->config['db_pass'])) != false && mysqli_select_db($this->sql, $this->config['db_name'])) {
                 return true;
             }
             else {
@@ -640,13 +640,13 @@ class ircbot {
         }
 
         $device = dbFetchRow('SELECT * FROM `devices` WHERE `hostname` = ?', array($hostname));
-        $port   = dbFetchRow('SELECT * FROM `ports` WHERE `ifName` = ? OR `ifDescr` = ? AND device_id = ?', array($ifname, $ifname, $device['device_id']));
+        $port   = dbFetchRow('SELECT * FROM `ports` WHERE (`ifName` = ? OR `ifDescr` = ?) AND device_id = ?', array($ifname, $ifname, $device['device_id']));
         if ($this->user['level'] < 5 && !in_array($port['port_id'], $this->user['ports']) && !in_array($device['device_id'], $this->user['devices'])) {
             return $this->respond('Error: Permission denied.');
         }
 
-        $bps_in  = formatRates($port['ifInOctets_rate']);
-        $bps_out = formatRates($port['ifOutOctets_rate']);
+        $bps_in  = formatRates($port['ifInOctets_rate'] * 8);
+        $bps_out = formatRates($port['ifOutOctets_rate'] * 8);
         $pps_in  = format_bi($port['ifInUcastPkts_rate']);
         $pps_out = format_bi($port['ifOutUcastPkts_rate']);
         return $this->respond($port['ifAdminStatus'].'/'.$port['ifOperStatus'].' '.$bps_in.' > bps > '.$bps_out.' | '.$pps_in.'pps > PPS > '.$pps_out.'pps');

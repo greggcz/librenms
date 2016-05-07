@@ -21,11 +21,19 @@ require 'includes/functions.php';
 require 'includes/polling/functions.inc.php';
 require 'includes/alerts.inc.php';
 
-$poller_start = utime();
+$poller_start = microtime(true);
 echo $config['project_name_version']." Poller\n";
-echo get_last_commit()."\n";
+$versions = version_info(false);
+echo "Version info:\n";
+$cur_sha = $versions['local_sha'];
+echo "Commit SHA: $cur_sha\n";
+echo "DB Schema: ".$versions['db_schema']."\n";
+echo "PHP: ".$versions['php_ver']."\n";
+echo "MySQL: ".$versions['mysql_ver']."\n";
+echo "RRDTool: ".$versions['rrdtool_ver']."\n";
+echo "SNMP: ".$versions['netsnmp_ver']."\n";
 
-$options = getopt('h:m:i:n:r::d::a::');
+$options = getopt('h:m:i:n:r::d::v::a::f::');
 
 if ($options['h'] == 'odd') {
     $options['n'] = '1';
@@ -73,15 +81,20 @@ if (!$where) {
     echo "                                             Instances start at 0. 0-3 for -n 4\n\n";
     echo "Debugging and testing options:\n";
     echo "-r                                           Do not create or update RRDs\n";
+    echo "-f                                           Do not insert data into InfluxDB\n";
     echo "-d                                           Enable debugging output\n";
+    echo "-d                                           Enable verbose debugging output\n";
     echo "-m                                           Specify module(s) to be run\n";
     echo "\n";
     echo "No polling type specified!\n";
     exit;
 }
 
-if (isset($options['d'])) {
+if (isset($options['d']) || isset($options['v'])) {
     echo "DEBUG!\n";
+    if (isset($options['v'])) {
+        $vdebug = true;
+    }
     $debug = true;
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -100,6 +113,17 @@ if (isset($options['r'])) {
     $config['norrd'] = true;
 }
 
+if (isset($options['f'])) {
+    $config['noinfluxdb'] = true;
+}
+
+if ($config['noinfluxdb'] !== true && $config['influxdb']['enable'] === true) {
+    $influxdb = influxdb_connect();
+}
+else {
+    $influxdb = false;
+}
+
 rrdtool_pipe_open($rrd_process, $rrd_pipes);
 
 echo "Starting polling run:\n\n";
@@ -110,13 +134,14 @@ if (!isset($query)) {
 
 foreach (dbFetch($query) as $device) {
     $device = dbFetchRow("SELECT * FROM `devices` WHERE `device_id` = '".$device['device_id']."'");
+    $device['vrf_lite_cisco'] = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = '".$device['device_id']."'");
     poll_device($device, $options);
     RunRules($device['device_id']);
     echo "\r\n";
     $polled_devices++;
 }
 
-$poller_end  = utime();
+$poller_end  = microtime(true);
 $poller_run  = ($poller_end - $poller_start);
 $poller_time = substr($poller_run, 0, 5);
 

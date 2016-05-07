@@ -48,16 +48,7 @@ if ($device['os'] != 'Snom') {
 
     $data_array = snmpwalk_cache_oid($device, 'snmp', array(), 'SNMPv2-MIB');
 
-    $fields = array();
-    foreach ($oids as $oid) {
-        if (is_numeric($data_array[0][$oid])) {
-            $value = $data_array[0][$oid];
-        }
-        else {
-            $value = 'U';
-        }
-        $fields[$oid] = $value;
-    }
+    $fields = $data_array[0];
 
     if (isset($data_array[0]['snmpInPkts']) && isset($data_array[0]['snmpOutPkts'])) {
         if (!file_exists($rrd_file)) {
@@ -65,6 +56,10 @@ if ($device['os'] != 'Snom') {
         }
 
         rrdtool_update($rrd_file, $fields);
+
+        $tags = array();
+        influx_update($device,'netstats-snmp',$tags,$fields);
+
         $graphs['netstat_snmp']     = true;
         $graphs['netstat_snmp_pkt'] = true;
     }

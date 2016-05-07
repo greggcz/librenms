@@ -2,15 +2,21 @@
 
 LibreNMS comes with a configurable geochart based frontpage to visualize where your gear is located geographically.
 
-### Expiremental map
+### Experimental map
 
-An new expiremental map is available, this requires you to have properly formatted addresses in sysLocation or sysLocation override. As part of the standard poller these addresses will be Geocoded by Google and stored in the database. To enable this please set the following config:
+An new experimental map is available, this requires you to have properly formatted addresses in sysLocation or sysLocation override. As part of the standard poller these addresses will be Geocoded by Google and stored in the database. To enable this please set the following config:
 
 ```php
 $config['front_page']       = "pages/front/map.php";
 $config['geoloc']['latlng'] = true;
 $config['geoloc']['engine'] = "google";//Only one available at present
 ```
+
+Location resolution happens as follows (when `$config['geoloc']['latlng'] == true;`):
+ 1. if `device['location']` contains `[lat, lng]` (note the square brackets), that is used
+ 1. if there is a location overide in the `locations` table where `locations.location == device['location']`, that is used
+  * currently, no web UI
+ 1. attempt to resolve lat, lng using `$config['geoloc']['engine']`
 
 We have two current mapping engines available:
 
@@ -29,9 +35,14 @@ $config['leaflet']['default_lng']                       = "-3.401402";
 $config['leaflet']['default_zoom']                       = 8;
 ```
 
+If you can't access OpenStreet map directly you can run a local [tile server](http://wiki.openstreetmap.org/wiki/Tile_servers). To specify a different url you can set:
+
+```php
+$config['leaflet']['tile_url'] = 'localhost.com';
+```
 
 ### Jquery-Mapael config
-Further custom options are available to load different maps of the world, set default coordinates of where the map will zoom and the zoom level by default. An example of 
+Further custom options are available to load different maps of the world, set default coordinates of where the map will zoom and the zoom level by default. An example of
 this is:
 
 ```php

@@ -20,14 +20,22 @@ require 'includes/definitions.inc.php';
 require 'includes/functions.php';
 require 'includes/discovery/functions.inc.php';
 
-$start         = utime();
+$start         = microtime(true);
 $runtime_stats = array();
 $sqlparams     = array();
-$options       = getopt('h:m:i:n:d::a::q',array('os:','type:'));
+$options       = getopt('h:m:i:n:d::v::a::q',array('os:','type:'));
 
 if (!isset($options['q'])) {
     echo $config['project_name_version']." Discovery\n";
-    echo get_last_commit()."\n";
+    $versions = version_info(false);
+    echo "Version info:\n";
+    $cur_sha = $versions['local_sha'];
+    echo "Commit SHA: $cur_sha\n";
+    echo "DB Schema: ".$versions['db_schema']."\n";
+    echo "PHP: ".$versions['php_ver']."\n";
+    echo "MySQL: ".$versions['mysql_ver']."\n";
+    echo "RRDTool: ".$versions['rrdtool_ver']."\n";
+    echo "SNMP: ".$versions['netsnmp_ver']."\n";
 }
 
 if (isset($options['h'])) {
@@ -74,8 +82,11 @@ if (isset($options['i']) && $options['i'] && isset($options['n'])) {
     $doing = $options['n'].'/'.$options['i'];
 }
 
-if (isset($options['d'])) {
+if (isset($options['d']) || isset($options['v'])) {
     echo "DEBUG!\n";
+    if (isset($options['v'])) {
+        $vdebug = true;
+    }
     $debug = true;
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -103,6 +114,7 @@ if (!$where) {
     echo "\n";
     echo "Debugging and testing options:\n";
     echo "-d                                           Enable debugging output\n";
+    echo "-v                                           Enable verbose debugging output\n";
     echo "-m                                           Specify single module to be run\n";
     echo "\n";
     echo "Invalid arguments!\n";
@@ -113,7 +125,7 @@ require 'includes/sql-schema/update.php';
 
 $discovered_devices = 0;
 
-if ($config['distributed_poller'] === true) {
+if (!empty($config['distributed_poller_group'])) {
     $where .= ' AND poller_group IN('.$config['distributed_poller_group'].')';
 }
 
@@ -121,7 +133,7 @@ foreach (dbFetch("SELECT * FROM `devices` WHERE status = 1 AND disabled = 0 $whe
     discover_device($device, $options);
 }
 
-$end      = utime();
+$end      = microtime(true);
 $run      = ($end - $start);
 $proctime = substr($run, 0, 5);
 

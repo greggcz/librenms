@@ -37,10 +37,19 @@ else {
 }
 
 echo "<tr style=\"background-color: $row_colour;\" valign=top onmouseover=\"this.style.backgroundColor='$list_highlight';\" onmouseout=\"this.style.backgroundColor='$row_colour';\" style='cursor: pointer;'>
-    <td valign=top width=350 onclick=\"location.href='".generate_port_url($port)."'\">";
-echo '        <span class=list-large>
+    <td valign=top width=350>";
+
+// Don't echo out ports ifIndex if it's a NOS device since their ifIndex is, for lack of better words....different
+if ($device['os'] == 'nos') {
+    echo '        <span class=list-large>
+        '.generate_port_link($port, $port['label'])." $error_img $mac
+        </span><br /><span class=interface-desc>".$port['ifAlias'].'</span>';
+}
+else {
+    echo '        <span class=list-large>
     '.generate_port_link($port, $port['ifIndex'].'. '.$port['label'])." $error_img $mac
     </span><br /><span class=interface-desc>".$port['ifAlias'].'</span>';
+}
 
 if ($port['ifAlias']) {
     echo '<br />';
@@ -329,10 +338,10 @@ echo '</td></tr>';
 
 // If we're showing graphs, generate the graph and print the img tags
 if ($graph_type == 'etherlike') {
-    $graph_file = $config['rrd_dir'].'/'.$device['hostname'].'/port-'.safename($port['ifIndex']).'-dot3.rrd';
+    $graph_file = get_port_rrdfile_path ($device['hostname'], $if_id, 'dot3');
 }
 else {
-    $graph_file = $config['rrd_dir'].'/'.$device['hostname'].'/port-'.safename($port['ifIndex']).'.rrd';
+    $graph_file = get_port_rrdfile_path ($device['hostname'], $if_id);
 }
 
 if ($graph_type && is_file($graph_file)) {

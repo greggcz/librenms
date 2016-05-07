@@ -30,6 +30,13 @@ echo '<tr>
         <td>'.$device['sysName'].' </td>
       </tr>';
 
+if (!empty($device['ip'])) {
+    echo '<tr>
+             <td>Resolved IP</td>
+             <td>'.$device['ip'].'</td>
+         </tr>';
+}
+
 if ($device['hardware']) {
     echo '<tr>
         <td>Hardware</td>
@@ -46,6 +53,13 @@ if ($device['serial']) {
     echo '<tr>
         <td>Serial</td>
         <td>'.$device['serial'].'</td>
+      </tr>';
+}
+
+if ($device['sysObjectID']) {
+    echo '<tr>
+        <td>Object ID</td>
+        <td>'.$device['sysObjectID'].'</td>
       </tr>';
 }
 

@@ -488,7 +488,7 @@ a.list-device-disabled, a.list-device-disabled:visited {
 }
 
 .box {
-  width: 350px;
+  width: 500px;
   height: 300px;
   padding: 0px;
   vertical-align: center;
@@ -1770,6 +1770,19 @@ label {
     padding: 15px 6px;
 }
 
+.badge-navbar-user{
+   background:red;
+   border-radius: 40%;
+   font-size: 65%;
+   height: auto;
+   margin: 0;
+   padding:5px;
+   position:absolute;
+   right:-3px;
+   top:5px;
+   width: auto;
+  }
+
 @media only screen and (max-width: 480px) {
     .thumbnail_graph_table b { font-size : 6px;}
     .thumbnail_graph_table img {
@@ -1820,4 +1833,34 @@ label {
 }
 
 @media only screen and (min-width: 1024px) {
+}
+
+.redCluster {
+    background-color: rgba(255,0,0);
+    background-color: rgba(255,0,0,0.7);
+    text-align: center;
+    width: 25px !important;
+    height: 25px !important;
+    font-size: 14px;
+    color: white;
+}
+
+.greenCluster {
+    background-color: rgba(0,255,0);
+    background-color: rgba(110, 204, 57, 0.6);
+    text-align: center;
+    width: 25px !important;
+    height: 25px !important;
+    font-size: 14px;
+    color: black;
+    border-color:transparent;
+}
+
+#overDiv {
+    z-index: 1200 !important;
+    border: solid 1px #ccc;
+    background-color: white;
+    padding: 5px;
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.5);
 }

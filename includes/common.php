@@ -33,9 +33,25 @@ function format_number_short($number, $sf) {
 }
 
 function external_exec($command) {
-    d_echo($command."\n");
+    global $debug,$vdebug;
+    if ($debug && !$vdebug) {
+        $debug_command = preg_replace('/-c [\S]+/','-c COMMUNITY',$command);
+        $debug_command = preg_replace('/(udp|udp6|tcp|tcp6):(.*):([\d]+)/','\1:HOSTNAME:\3',$debug_command);
+        d_echo($debug_command);
+    }
+    elseif ($vdebug) {
+        d_echo($command."\n");
+    }
+
     $output = shell_exec($command);
-    d_echo($output."\n");
+
+    if ($debug && !$vdebug) {
+        $debug_output = preg_replace('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/', '*', $output);
+        d_echo("$debug_output\n");
+    }
+    elseif ($vdebug) {
+        d_echo($output."\n");
+    }
 
     return $output;
 }
@@ -98,7 +114,7 @@ function delete_port($int_id) {
     dbDelete('links', "`remote_port_id` =  ?", array($int_id));
     dbDelete('bill_ports', "`port_id` =  ?", array($int_id));
 
-    unlink(trim($config['rrd_dir'])."/".trim($interface['hostname'])."/port-".$interface['ifIndex'].".rrd");
+    unlink(get_port_rrdfile_path ($interface['hostname'], $interface['port_id']));
 }
 
 function sgn($int) {
@@ -125,6 +141,15 @@ function get_sensor_rrd($device, $sensor) {
     }
 
     return($rrd_file);
+}
+
+function get_port_rrdfile_path ($hostname, $port_id, $suffix = '') {
+    global $config;
+
+    if (! empty ($suffix))
+        $suffix = '-' . $suffix;
+
+    return trim ($config['rrd_dir']) . '/' . safename ($hostname) . '/' . 'port-id' . safename($port_id) . safename ($suffix) . '.rrd';
 }
 
 function get_port_by_index_cache($device_id, $ifIndex) {
@@ -290,6 +315,17 @@ function device_by_id_cache($device_id, $refresh = '0') {
     }
     else {
         $device = dbFetchRow("SELECT * FROM `devices` WHERE `device_id` = ?", array($device_id));
+		
+		//order vrf_lite_cisco with context, this will help to get the vrf_name and instance_name all the time
+		$vrfs_lite_cisco = dbFetchRows("SELECT * FROM `vrf_lite_cisco` WHERE `device_id` = ?", array($device_id));
+		$device['vrf_lite_cisco'] = array();
+		if(!empty($vrfs_lite_cisco)){
+			foreach ($vrfs_lite_cisco as $vrf){
+				$device['vrf_lite_cisco'][$vrf['context_name']] = $vrf;
+			}
+		}
+
+        $device['ip'] = inet6_ntop($device['ip']);
         $cache['devices']['id'][$device_id] = $device;
     }
     return $device;
@@ -452,7 +488,7 @@ function get_dev_attrib($device, $attrib_type, $attrib_value='') {
 
 function is_dev_attrib_enabled($device, $attrib, $default = true) {
     $val = get_dev_attrib($device, $attrib);
-    if ($val != NULL) {
+    if ($val != null) {
         // attribute is set
         return ($val != 0);
     }
@@ -549,37 +585,6 @@ function is_valid_hostname($hostname) {
     return ctype_alnum(str_replace('_','',str_replace('-','',str_replace('.','',$hostname))));
 }
 
-function add_service($device, $service, $descr, $service_ip, $service_param = "", $service_ignore = 0) {
-
-    if (!is_array($device)) {
-        $device = device_by_id_cache($device);
-    }
-
-    if (empty($service_ip)) {
-        $service_ip = $device['hostname'];
-    }
-
-    $insert = array('device_id' => $device['device_id'], 'service_ip' => $service_ip, 'service_type' => $service,
-        'service_changed' => array('UNIX_TIMESTAMP(NOW())'), 'service_desc' => $descr, 'service_param' => $service_param, 'service_ignore' => $service_ignore);
-
-    return dbInsert($insert, 'services');
-}
-
-function edit_service($service, $descr, $service_ip, $service_param = "", $service_ignore = 0) {
-
-    if (!is_numeric($service)) {
-        return false;
-    }
-
-    $update = array('service_ip' => $service_ip,
-        'service_changed' => array('UNIX_TIMESTAMP(NOW())'),
-        'service_desc' => $descr,
-        'service_param' => $service_param,
-        'service_ignore' => $service_ignore);
-    return dbUpdate($update, 'services', '`service_id`=?', array($service));
-
-}
-
 /*
  * convenience function - please use this instead of 'if ($debug) { echo ...; }'
  */
@@ -596,7 +601,8 @@ function d_echo($text, $no_debug_text = null) {
     elseif ($no_debug_text) {
         echo "$no_debug_text";
     }
-}
+} // d_echo
+
 
 /*
  * convenience function - please use this instead of 'if ($debug) { print_r ...; }'
@@ -609,37 +615,8 @@ function d_print_r($var, $no_debug_text = null) {
     elseif ($no_debug_text) {
         echo "$no_debug_text";
     }
-}
+} // d_print_r
 
-/*
- * Shorten the name so it works as an RRD data source name (limited to 19 chars by default).
- * Substitute for $subst if necessary.
- * @return the shortened name
- */
-function name_shorten($name, $common = null, $subst = "mibval", $len = 19) {
-    if ($common !== null) {
-        // remove common from the beginning of the string, if present
-        if (strlen($name) > $len && strpos($name, $common) >= 0) {
-            $newname = str_replace($common, '', $name);
-            $name = $newname;
-        }
-    }
-    if (strlen($name) > $len) {
-        $name = $subst;
-    }
-    return $name;
-}
-
-/*
- * @return the name of the rrd file for $host's $extra component
- * @param host Host name
- * @param extra Components of RRD filename - will be separated with "-"
- */
-function rrd_name($host, $extra, $exten = ".rrd") {
-    global $config;
-    $filename = safename(is_array($extra) ? implode("-", $extra) : $extra);
-    return implode("/", array($config['rrd_dir'], $host, $filename.$exten));
-}
 
 /*
  * @return true if the given graph type is a dynamic MIB graph
@@ -647,7 +624,8 @@ function rrd_name($host, $extra, $exten = ".rrd") {
 function is_mib_graph($type, $subtype) {
     global $config;
     return $config['graph_types'][$type][$subtype]['section'] == 'mib';
-}
+} // is_mib_graph
+
 
 /*
  * @return true if client IP address is authorized to access graphs
@@ -670,13 +648,14 @@ function is_client_authorized($clientip) {
     }
 
     return false;
-}
+} // is_client_authorized
+
 
 /*
  * @return an array of all graph subtypes for the given type
- * FIXME not all of these are going to be valid
  */
-function get_graph_subtypes($type) {
+function get_graph_subtypes($type, $device = null)
+{
     global $config;
 
     $types = array();
@@ -694,7 +673,7 @@ function get_graph_subtypes($type) {
     // find the MIB subtypes
     foreach ($config['graph_types'] as $type => $unused1) {
         foreach ($config['graph_types'][$type] as $subtype => $unused2) {
-            if (is_mib_graph($type, $subtype)) {
+            if (is_mib_graph($type, $subtype)  &&  $device != null  &&  is_device_graph($device, $subtype)) {
                 $types[] = $subtype;
             }
         }
@@ -702,7 +681,15 @@ function get_graph_subtypes($type) {
 
     sort($types);
     return $types;
-}
+} // get_graph_subtypes
+
+
+function is_device_graph($device, $subtype)
+{
+    $query = 'SELECT COUNT(*) FROM `device_graphs` WHERE `device_id` = ? AND `graph` = ?';
+    return dbFetchCell($query, array($device['device_id'], $subtype)) > 0;
+} // is_device_graph
+
 
 function get_smokeping_files($device) {
     global $config;
@@ -712,8 +699,8 @@ function get_smokeping_files($device) {
         if ($handle = opendir($smokeping_dir)) {
             while (false !== ($file = readdir($handle))) {
                 if ($file != '.' && $file != '..') {
-                    if (eregi('.rrd', $file)) {
-                        if (eregi('~', $file)) {
+                    if (stripos($file, '.rrd') !== false) {
+                        if (strpos($file, '~') !== false) {
                             list($target,$slave) = explode('~', str_replace('.rrd', '', $file));
                             $target = str_replace('_', '.', $target);
                             $smokeping_files['in'][$target][$slave] = $file;
@@ -733,6 +720,7 @@ function get_smokeping_files($device) {
     return $smokeping_files;
 } // end get_smokeping_files
 
+
 function generate_smokeping_file($device,$file='') {
     global $config;
     if ($config['smokeping']['integration'] === true) {
@@ -741,7 +729,8 @@ function generate_smokeping_file($device,$file='') {
     else {
         return $config['smokeping']['dir'] . '/' . $file;
     }
-}
+} // generate_smokeping_file
+
 
 /*
  * @return rounded value to 10th/100th/1000th depending on input (valid: 10, 100, 1000)
@@ -757,6 +746,167 @@ function round_Nth($val = 0, $round_to) {
         return $ret;
     }
 } // end round_Nth 
+
+
+/*
+ * @return true if this device should be polled with MIB-based discovery
+ */
+function is_mib_poller_enabled($device)
+{
+    $val = get_dev_attrib($device, 'poll_mib');
+    if ($val == null) {
+        return is_module_enabled('poller', 'mib');
+    }
+    return $val;
+} // is_mib_poller_enabled
+
+
+/*
+ * FIXME: Dummy implementation
+ */
+function count_mib_mempools($device)
+{
+    if (is_mib_poller_enabled($device) && $device['os'] == 'ruckuswireless') {
+        return 1;
+    }
+    return 0;
+} // count_mib_mempools
+
+
+/*
+ * FIXME: Dummy implementation
+ */
+function count_mib_processors($device)
+{
+    if (is_mib_poller_enabled($device) && $device['os'] == 'ruckuswireless') {
+        return 1;
+    }
+    return 0;
+} // count_mib_processors
+
+
+function count_mib_health($device)
+{
+    return count_mib_mempools($device) + count_mib_processors($device);
+} // count_mib_health
+
+
+function get_mibval($device, $oid)
+{
+    $sql = 'SELECT * FROM `device_oids` WHERE `device_id` = ? AND `oid` = ?';
+    return dbFetchRow($sql, array($device['device_id'], $oid));
+} // get_mibval
+
+
+/*
+ * FIXME: Dummy implementation - needs an abstraction for each device
+ */
+function get_mib_mempools($device)
+{
+    $mempools = array();
+    if (is_mib_poller_enabled($device) && $device['os'] == 'ruckuswireless') {
+        $mempool = array();
+        $mibvals = get_mibval($device, '.1.3.6.1.4.1.25053.1.2.1.1.1.15.14.0');
+        $mempool['mempool_descr'] = $mibvals['object_type'];
+        $mempool['mempool_id'] = 0;
+        $mempool['mempool_total'] = 100;
+        $mempool['mempool_used'] = $mibvals['numvalue'];
+        $mempool['mempool_free'] = 100 - $mibvals['numvalue'];
+        $mempool['percentage'] = true;
+        $mempools[] = $mempool;
+    }
+    return $mempools;
+} // get_mib_mempools
+
+
+/*
+ * FIXME: Dummy implementation - needs an abstraction for each device
+ */
+function get_mib_processors($device)
+{
+    $processors = array();
+    if (is_mib_poller_enabled($device) && $device['os'] == 'ruckuswireless') {
+        $proc = array();
+        $mibvals = get_mibval($device, '.1.3.6.1.4.1.25053.1.2.1.1.1.15.13.0');
+        $proc['processor_descr'] = $mibvals['object_type'];
+        $proc['processor_id'] = 0;
+        $proc['processor_usage'] = $mibvals['numvalue'];
+        $processors[] = $proc;
+    }
+    return $processors;
+} // get_mib_processors
+
+
+/*
+ * FIXME: Dummy implementation - needs an abstraction for each device
+ * @return true if there is a custom graph defined for this type, subtype, and device
+ */
+function is_custom_graph($type, $subtype, $device)
+{
+    if (is_mib_poller_enabled($device) && $device['os'] == 'ruckuswireless' && $type == 'device') {
+        switch ($subtype) {
+        case 'cpumem':
+        case 'mempool':
+        case 'processor':
+            return true;
+        }
+    }
+    return false;
+} // is_custom_graph
+
+
+/*
+ * FIXME: Dummy implementation
+ * Set section/graph entries in $graph_enable for graphs specific to $os.
+ */
+function enable_os_graphs($os, &$graph_enable)
+{
+    /*
+    foreach (dbFetchRows("SELECT * FROM graph_conditions WHERE graph_type = 'device' AND condition_name = 'os' AND condition_value = ?", array($os)) as $graph) {
+        $graph_enable[$graph['graph_section']][$graph['graph_subtype']] = "device_".$graph['graph_subtype'];
+    }
+    */
+} // enable_os_graphs
+
+
+/*
+ * For each os-based or global graph relevant to $device, set its section/graph entry in $graph_enable.
+ */
+function enable_graphs($device, &$graph_enable)
+{
+    // These are standard graphs we should have for all systems
+    $graph_enable['poller']['poller_perf']         = 'device_poller_perf';
+    $graph_enable['poller']['poller_modules_perf'] = 'device_poller_modules_perf';
+    if (can_ping_device($device) === true) {
+        $graph_enable['poller']['ping_perf'] = 'device_ping_perf';
+    }
+
+    enable_os_graphs($device['os'], $graph_enable);
+} // enable_graphs
+
+
+//
+// maintain a simple cache of objects
+//
+
+function object_add_cache($section, $obj)
+{
+    global $object_cache;
+    $object_cache[$section][$obj] = true;
+} // object_add_cache
+
+
+function object_is_cached($section, $obj)
+{
+    global $object_cache;
+    if (array_key_exists($obj, $object_cache)) {
+        return $object_cache[$section][$obj];
+    }
+    else {
+        return false;
+    }
+} // object_is_cached
+
 
 /**
  * Checks if config allows us to ping this device
@@ -774,6 +924,69 @@ function can_ping_device($attribs) {
         return false;
     }
 } // end can_ping_device
+
+
+/*
+ * @return true if the requested module type & name is globally enabled
+ */
+function is_module_enabled($type, $module)
+{
+    global $config;
+    if (isset($config[$type.'_modules'][$module])) {
+        return $config[$type.'_modules'][$module] == 1;
+    }
+    else {
+        return false;
+    }
+} // is_module_enabled
+
+
+/*
+ * @return true if every string in $arr begins with $str
+ */
+function begins_with($str, $arr)
+{
+    foreach ($arr as $s) {
+        $pos = strpos($s, $str);
+        if ($pos === false || $pos > 0) {
+            return false;
+        }
+    }
+    return true;
+} // begins_with
+
+
+/*
+ * @return the longest starting portion of $str that matches everything in $arr
+ */
+function longest_matching_prefix($str, $arr)
+{
+    $len = strlen($str);
+    while ($len > 0) {
+        $prefix = substr($str, 0, $len);
+        if (begins_with($prefix, $arr)) {
+            return $prefix;
+        }
+        $len -= 1;
+    }
+    return '';
+} // longest_matching_prefix
+
+
+function search_phrase_column($c)
+{
+    global $searchPhrase;
+    return "$c LIKE '%$searchPhrase%'";
+} // search_phrase_column
+
+
+function print_mib_poller_disabled() {
+    echo '<h4>MIB polling is not enabled</h4>
+<p>
+Set <tt>$config[\'poller_modules\'][\'mib\'] = 1;</tt> in <tt>config.php</tt> to enable.
+</p>';
+} // print_mib_poller_disabled
+
 
 /**
  * Constructs the path to an RRD for the Ceph application
@@ -794,7 +1007,7 @@ function ceph_rrd($gtype) {
 
     $rrd = join('-', array('app', 'ceph', $vars['id'], $gtype, $var)).'.rrd';
     return join('/', array($config['rrd_dir'], $device['hostname'], $rrd));
-}
+} // ceph_rrd
 
 /**
  * Parse location field for coordinates
@@ -807,3 +1020,217 @@ function parse_location($location) {
         return array('lat' => $tmp_loc[2], 'lng' => $tmp_loc[3]);
     }
 }//end parse_location()
+
+/**
+ * Returns version info
+ * @return array
+**/
+function version_info($remote=true) {
+    global $config;
+    $output = array();
+    if ($remote === true && $config['update_channel'] == 'master') {
+        $api = curl_init();
+        set_curl_proxy($api);
+        curl_setopt($api, CURLOPT_USERAGENT,'LibreNMS');
+        curl_setopt($api, CURLOPT_URL, $config['github_api'].'commits/master');
+        curl_setopt($api, CURLOPT_RETURNTRANSFER, 1);
+        $output['github'] = json_decode(curl_exec($api),true);
+    }
+    $output['local_sha']    = rtrim(`git rev-parse HEAD`);
+    $output['local_branch'] = rtrim(`git rev-parse --abbrev-ref HEAD`);
+
+    exec('git diff --name-only --exit-code', $cmdoutput, $code);
+    $output['git_modified'] = ($code !== 0);
+    $output['git_modified_files'] = $cmdoutput;
+
+    $output['db_schema']   = dbFetchCell('SELECT version FROM dbSchema');
+    $output['php_ver']     = phpversion();
+    $output['mysql_ver']   = dbFetchCell('SELECT version()');
+    $output['rrdtool_ver'] = implode(' ', array_slice(explode(' ', shell_exec($config['rrdtool'].' --version |head -n1')), 1, 1));
+    $output['netsnmp_ver'] = shell_exec($config['snmpget'].' --version 2>&1');
+
+    return $output;
+
+}//end version_info()
+
+/**
+* Convert a MySQL binary v4 (4-byte) or v6 (16-byte) IP address to a printable string.
+* @param string $ip A binary string containing an IP address, as returned from MySQL's INET6_ATON function
+* @return string Empty if not valid.
+*/
+// Fuction is from http://uk3.php.net/manual/en/function.inet-ntop.php
+function inet6_ntop($ip) {
+    $l = strlen($ip);
+    if ($l == 4 or $l == 16) {
+        return inet_ntop(pack('A' . $l, $ip));
+    }
+    return '';
+}
+
+/**
+ * Convert IP to use sysName
+ * @param array device
+ * @param string ip address
+ * @return string
+**/
+function ip_to_sysname($device,$ip) {
+    global $config;
+    if ($config['force_ip_to_sysname'] === true) {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) == true || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) == true) {
+            $ip = $device['sysName'];
+        }
+    }
+    return $ip;
+}//end ip_to_sysname
+
+/**
+ * Return valid port association modes
+ * @param bool $no_cache No-Cache flag (optional, default false)
+ * @return array
+ */
+function get_port_assoc_modes ($no_cache = false) {
+    global $config;
+
+    if ($config['memcached']['enable'] && $no_cache === false) {
+        $assoc_modes = $config['memcached']['resource']->get (hash ('sha512', "port_assoc_modes"));
+        if (! empty ($assoc_modes))
+            return $assoc_modes;
+    }
+
+    $assoc_modes = Null;
+        foreach (dbFetchRows ("SELECT `name` FROM `port_association_mode` ORDER BY pom_id") as $row)
+        $assoc_modes[] = $row['name'];
+
+    if ($config['memcached']['enable'] && $no_cache === false)
+        $config['memcached']['resource']->set (hash ('sha512', "port_assoc_modes"), $assoc_modes, $config['memcached']['ttl']);
+
+    return $assoc_modes;
+}
+
+/**
+ * Validate port_association_mode
+ * @param string $port_assoc_mode
+ * @return bool
+ */
+function is_valid_port_assoc_mode ($port_assoc_mode) {
+    return in_array ($port_assoc_mode, get_port_assoc_modes ());
+}
+
+/**
+ * Get DB id of given port association mode name
+ * @param string $port_assoc_mode
+ * @param bool $no_cache No-Cache flag (optional, default false)
+ */
+function get_port_assoc_mode_id ($port_assoc_mode, $no_cache = false) {
+    global $config;
+
+    if ($config['memcached']['enable'] && $no_cache === false) {
+        $id = $config['memcached']['resource']->get (hash ('sha512', "port_assoc_mode_id|$port_assoc_mode"));
+        if (! empty ($id))
+            return $id;
+    }
+
+    $id = Null;
+    $row = dbFetchRow ("SELECT `pom_id` FROM `port_association_mode` WHERE name = ?", array ($port_assoc_mode));
+    if ($row) {
+        $id = $row['pom_id'];
+        if ($config['memcached']['enable'] && $no_cache === false)
+            $config['memcached']['resource']->set (hash ('sha512', "port_assoc_mode_id|$port_assoc_mode"), $id, $config['memcached']['ttl']);
+    }
+
+    return $id;
+}
+
+/**
+ * Get name of given port association_mode ID
+ * @param int $port_assoc_mode_id Port association mode ID
+ * @param bool $no_cache No-Cache flag (optional, default false)
+ * @return bool
+ */
+function get_port_assoc_mode_name ($port_assoc_mode_id, $no_cache = false) {
+    global $config;
+
+    if ($config['memcached']['enable'] && $no_cache === false) {
+        $name = $config['memcached']['resource']->get (hash ('sha512', "port_assoc_mode_name|$port_assoc_mode_id"));
+        if (! empty ($name))
+            return $name;
+    }
+
+    $name = Null;
+    $row = dbFetchRow ("SELECT `name` FROM `port_association_mode` WHERE pom_id = ?", array ($port_assoc_mode_id));
+    if ($row) {
+        $name = $row['name'];
+        if ($config['memcached']['enable'] && $no_cache === false)
+            $config['memcached']['resource']->set (hash ('sha512', "port_assoc_mode_name|$port_assoc_mode_id"), $name, $config['memcached']['ttl']);
+    }
+
+    return $name;
+}
+
+/**
+ * Query all ports of the given device (by ID) and build port array and
+ * port association maps for ifIndex, ifName, ifDescr. Query port stats
+ * if told to do so, too.
+ * @param int $device_id ID of device to query ports for
+ * @param bool $with_statistics Query port statistics, too. (optional, default false)
+ * @return array
+ */
+function get_ports_mapped ($device_id, $with_statistics = false) {
+    $ports = array();
+    $maps = array(
+        'ifIndex' => array(),
+        'ifName'  => array(),
+        'ifDescr' => array(),
+    );
+
+    /* Query all information available for ports for this device ... */
+    $query = 'SELECT * FROM `ports` WHERE `device_id` = ? ORDER BY port_id';
+    if ($with_statistics) {
+        /* ... including any related ports_statistics if requested */
+        $query = 'SELECT *, `ports_statistics`.`port_id` AS `ports_statistics_port_id`, `ports`.`port_id` AS `port_id` FROM `ports` LEFT OUTER JOIN `ports_statistics` ON `ports`.`port_id` = `ports_statistics`.`port_id` WHERE `ports`.`device_id` = ? ORDER BY ports.port_id';
+    }
+
+    // Query known ports in order of discovery to make sure the latest
+    // discoverd/polled port is in the mapping tables.
+    foreach (dbFetchRows ($query, array ($device_id)) as $port) {
+        // Store port information by ports port_id from DB
+        $ports[$port['port_id']] = $port;
+
+        // Build maps from ifIndex, ifName, ifDescr to port_id
+        $maps['ifIndex'][$port['ifIndex']] = $port['port_id'];
+        $maps['ifName'][$port['ifName']]   = $port['port_id'];
+        $maps['ifDescr'][$port['ifDescr']] = $port['port_id'];
+    }
+
+    return array(
+        'ports' => $ports,
+        'maps'  => $maps,
+    );
+}
+
+/**
+ * Calculate port_id of given port using given devices port information and port association mode
+ * @param array $ports_mapped Port information of device queried by get_ports_mapped()
+ * @param array $port Port information as fetched from DB
+ * @param string $port_association_mode Port association mode to use for mapping
+ * @return int port_id (or Null)
+ */
+function get_port_id ($ports_mapped, $port, $port_association_mode) {
+    // Get port_id according to port_association_mode used for this device
+    $port_id = Null;
+
+    /*
+     * Information an all ports is available through $ports_mapped['ports']
+     * This might come in handy sometime in the future to add you nifty new
+     * port mapping schema:
+     *
+     * $ports = $ports_mapped['ports'];
+    */
+    $maps  = $ports_mapped['maps'];
+
+    if (in_array ($port_association_mode, array ('ifIndex', 'ifName', 'ifDescr', 'ifAlias'))) {
+        $port_id = $maps[$port_association_mode][$port[$port_association_mode]];
+    }
+
+    return $port_id;
+}

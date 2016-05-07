@@ -131,12 +131,23 @@ if ($config['map']['engine'] == 'leaflet') {
         }
         $map_init = "[" . $init_lat . ", " . $init_lng . "], " . sprintf("%01.0f", $init_zoom);
         $temp_output .= 'var map = L.map(\'leaflet-map\').setView('.$map_init.');
-L.tileLayer(\'//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png\', {
+L.tileLayer(\'//'.$config['leaflet']['tile_url'].'/{z}/{x}/{y}.png\', {
     attribution: \'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors\'
 }).addTo(map);
 
 var markers = L.markerClusterGroup({
     maxClusterRadius: ' . $group_radius . ',
+    iconCreateFunction: function (cluster) {
+        var markers = cluster.getAllChildMarkers();
+        var n = 0;
+        newClass = "greenCluster marker-cluster marker-cluster-small leaflet-zoom-animated leaflet-clickable";
+        for (var i = 0; i < markers.length; i++) {
+            if (markers[i].options.icon.options.markerColor == "red") {
+                newClass = "redCluster marker-cluster marker-cluster-small leaflet-zoom-animated leaflet-clickable";
+            }
+        }
+        return L.divIcon({ html: cluster.getChildCount(), className: newClass, iconSize: L.point(40, 40) });
+    },
   });
 var redMarker = L.AwesomeMarkers.icon({
     icon: \'server\',
@@ -179,8 +190,9 @@ var greenMarker = L.AwesomeMarkers.icon({
                 $icon = 'redMarker';
                 $z_offset = 10000;  // move marker to foreground
             }
-            $temp_output .= "var title = '<a href=\"" . generate_device_url($map_devices) . "\"><img src=\"".getImageSrc($map_devices)."\" width=\"32\" height=\"32\" alt=\"\">".$map_devices['hostname']."</a>';
-var marker = L.marker(new L.LatLng(".$map_devices['lat'].", ".$map_devices['lng']."), {title: title, icon: $icon, zIndexOffset: $z_offset});
+            $temp_output .= "var title = '<a href=\"" . generate_device_url($map_devices) . "\"><img src=\"".getImageSrc($map_devices)."\" width=\"32\" height=\"32\" alt=\"\"> ".$map_devices['hostname']."</a>';
+var tooltip = '".$map_devices['hostname']."';
+var marker = L.marker(new L.LatLng(".$map_devices['lat'].", ".$map_devices['lng']."), {title: tooltip, icon: $icon, zIndexOffset: $z_offset});
 marker.bindPopup(title);
     markers.addLayer(marker);\n";
         }

@@ -47,7 +47,7 @@ if ($rowCount != -1) {
 $sql = "SELECT * $sql";
 
 foreach (dbFetchRows($sql, $param) as $sensor) {
-    if (empty($sensor['sensor_current'])) {
+    if (!isset($sensor['sensor_current'])) {
         $sensor['sensor_current'] = 'NaN';
     }
     else {
@@ -80,7 +80,7 @@ foreach (dbFetchRows($sql, $param) as $sensor) {
 
     $link = generate_url(array('page' => 'device', 'device' => $sensor['device_id'], 'tab' => 'health', 'metric' => $sensor['sensor_class']));
 
-    $overlib_content = '<div style="width: 580px;"><h2>'.$device['hostname'].' - '.$sensor['sensor_descr'].'</h1>';
+    $overlib_content = '<div style="width: 580px;"><h2>'.$sensor['hostname'].' - '.$sensor['sensor_descr'].'</h1>';
     foreach (array('day', 'week', 'month', 'year') as $period) {
         $graph_array['from'] = $config['time'][$period];
         $overlib_content    .= str_replace('"', "\'", generate_graph_tag($graph_array));

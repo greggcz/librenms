@@ -15,7 +15,7 @@ foreach ($servers as $item => $server) {
 
     if (!empty($server)) {
         $data              = explode(';', $server);
-        list($host, $port) = split(':', $data['0'], 2);
+        list($host, $port) = explode(':', $data['0'], 2);
         $bitrate           = $data['1'];
         $traf_in           = $data['2'];
         $traf_out          = $data['3'];
@@ -53,6 +53,9 @@ foreach ($servers as $item => $server) {
         );
 
         rrdtool_update($rrdfile, $fields);
+
+        $tags = array('name' => 'shoutcast', 'app_id' => $app['app_id'], 'host' => $host, 'port' => $port);
+        influx_update($device,'app',$tags,$fields);
 
     }//end if
 }//end foreach

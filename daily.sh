@@ -4,12 +4,12 @@
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -23,8 +23,9 @@ arg="$1"
 status_run() {
     printf "%-50s" "$1"
     echo "$1" >> logs/daily.log
-    bash -c "$2" &>> logs/daily.log
+    tmp=$(bash -c "$2" 2>&1)
     ex=$?
+    echo "$tmp" >> logs/daily.log
     echo "Returned: $ex" >> logs/daily.log
     [ $ex -eq 0 ] && echo -e ' \033[0;32mOK\033[0m' || echo -e ' \033[0;31mFAIL\033[0m'
     return $ex
@@ -32,7 +33,10 @@ status_run() {
 
 if [ -z "$arg" ]; then
     up=$(php daily.php -f update >&2; echo $?)
-    if [ "$up" -eq 1 ]; then
+    if [ "$up" -eq 0 ]; then
+        $0 no-code-update
+        exit
+    elif [ "$up" -eq 1 ]; then
         # Update to Master-Branch
         status_run 'Updating to latest codebase' 'git pull --quiet'
     elif [ "$up" -eq 3 ]; then
@@ -41,13 +45,19 @@ if [ -z "$arg" ]; then
     fi
 
     cnf=$(echo $(grep '\[.distributed_poller.\]' config.php | egrep -v -e '^//' -e '^#' | cut -d = -f 2 | sed 's/;//g'))
-    cnd=${cnf,,}
+    cnf=${cnf,,}
     if [ -z "$cnf" ] || [ "$cnf" == "0" ] || [ "$cnf" == "false" ]; then
         # Call ourself again in case above pull changed or added something to daily.sh
         $0 post-pull
     fi
 else
     case $arg in
+        no-code-update)
+            # Updates of the code are disabled, just check for schema updates
+            # and clean up the db.
+            status_run 'Updating SQL-Schema' 'php includes/sql-schema/update.php'
+            status_run 'Cleaning up DB' "$0 cleanup"
+        ;;
         post-pull)
             # List all tasks to do after pull in the order of execution
             status_run 'Updating SQL-Schema' 'php includes/sql-schema/update.php'
@@ -63,6 +73,9 @@ else
             php daily.php -f perf_times
             php daily.php -f callback
             php daily.php -f device_perf
+            php daily.php -f purgeusers
+            php daily.php -f bill_data
+            php daily.php -f alert_log
         ;;
         submodules)
             # Init+Update our submodules

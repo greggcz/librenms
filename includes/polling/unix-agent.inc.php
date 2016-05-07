@@ -14,7 +14,7 @@ if ($device['os_group'] == 'unix') {
         $config['unix-agent']['read-timeout'] = $config['unix-agent-read-time-out'];
     }
 
-    $agent_start = utime();
+    $agent_start = microtime(true);
     $agent       = fsockopen($device['hostname'], $agent_port, $errno, $errstr, $config['unix-agent']['connection-timeout']);
 
     // Set stream timeout (for timeouts during agent  fetch
@@ -36,21 +36,20 @@ if ($device['os_group'] == 'unix') {
         }
     }
 
-    $agent_end  = utime();
+    $agent_end  = microtime(true);
     $agent_time = round(($agent_end - $agent_start) * 1000);
 
     if (!empty($agent_raw)) {
         echo 'execution time: '.$agent_time.'ms';
-        $agent_rrd = $config['rrd_dir'].'/'.$device['hostname'].'/agent.rrd';
-        if (!is_file($agent_rrd)) {
-            rrdtool_create($agent_rrd, 'DS:time:GAUGE:600:0:U '.$config['rrd_rra']);
-        }
 
+        $tags = array(
+            'rrd_def' => 'DS:time:GAUGE:600:0:U',
+        );
         $fields = array(
             'time' => $agent_time,
         );
- 
-        rrdtool_update($agent_rrd, $fields);
+        data_update($device, 'agent', $tags, $fields);
+
         $graphs['agent'] = true;
 
         foreach (explode('<<<', $agent_raw) as $section) {
@@ -98,7 +97,7 @@ if ($device['os_group'] == 'unix') {
             dbDelete('processes', 'device_id = ?', array($device['device_id']));
             $data=array();
             foreach (explode("\n", $agent_data['ps']) as $process) {
-                $process = preg_replace('/\((.*),([0-9]*),([0-9]*),([0-9\:]*),([0-9]*)\)\ (.*)/', '\\1|\\2|\\3|\\4|\\5|\\6', $process);
+                $process = preg_replace('/\((.*),([0-9]*),([0-9]*),([0-9\:\.]*),([0-9]*)\)\ (.*)/', '\\1|\\2|\\3|\\4|\\5|\\6', $process);
                 list($user, $vsz, $rss, $cputime, $pid, $command) = explode('|', $process, 6);
                 if (!empty($command)) {
                     $data[]=array('device_id' => $device['device_id'], 'pid' => $pid, 'user' => $user, 'vsz' => $vsz, 'rss' => $rss, 'cputime' => $cputime, 'command' => $command);

@@ -21,6 +21,7 @@ Table of Content:
     - [Clickatell](#transports-clickatell)
     - [PlaySMS](#transports-playsms)
     - [VictorOps](#transports-victorops)
+    - [Canopsis](#transports-canopsis)
 - [Entities](#entities)
     - [Devices](#entity-devices)
     - [BGP Peers](#entity-bgppeers)
@@ -38,7 +39,7 @@ Table of Content:
 
 # <a name="about">About</a>
 
-LibreNMS includes a highly customizable alerting system.  
+LibreNMS includes a highly customizable alerting system.
 The system requires a set of user-defined rules to evaluate the situation of each device, port, service or any other entity.
 
 > You can configure all options for alerting and transports via the WebUI, config options in this document are crossed out but left for reference.
@@ -47,15 +48,15 @@ This document only covers the usage of it. See the [DEVELOPMENT.md](https://gith
 
 # <a name="rules">Rules</a>
 
-Rules are defined using a logical language.  
-The GUI provides a simple way of creating basic as well as complex Rules in a self-describing manner.  
+Rules are defined using a logical language.
+The GUI provides a simple way of creating basic as well as complex Rules in a self-describing manner.
 More complex rules can be written manually.
 
 ## <a name="rules-syntax">Syntax</a>
 
-Rules must consist of at least 3 elements: An __Entity__, a __Condition__ and a __Value__.  
-Rules can contain braces and __Glues__.  
-__Entities__ are provided as `%`-Noted pair of Table and Field. For Example: `%ports.ifOperStatus`.  
+Rules must consist of at least 3 elements: An __Entity__, a __Condition__ and a __Value__.
+Rules can contain braces and __Glues__.
+__Entities__ are provided as `%`-Noted pair of Table and Field. For Example: `%ports.ifOperStatus`.
 __Conditions__ can be any of:
 
 - Equals `=`
@@ -67,10 +68,10 @@ __Conditions__ can be any of:
 - Smaller `<`
 - Smaller or Equal `<=`
 
-__Values__ can be Entities or any single-quoted data.  
+__Values__ can be Entities or any single-quoted data.
 __Glues__ can be either `&&` for `AND` or `||` for `OR`.
 
-__Note__: The difference between `Equals` and `Matches` (and its negation) is that `Equals` does a strict comparison and `Matches` allows the usage of RegExp.  
+__Note__: The difference between `Equals` and `Matches` (and its negation) is that `Equals` does a strict comparison and `Matches` allows the usage of RegExp.
 Arithmetics are allowed as well.
 
 ## <a name="rules-examples">Examples</a>
@@ -81,20 +82,26 @@ Alert when:
 - Any port changes: `%ports.ifOperStatus != 'up'`
 - Root-directory gets too full: `%storage.storage_descr = '/' && %storage.storage_perc >= '75'`
 - Any storage gets fuller than the 'warning': `%storage.storage_perc >= %storage_perc_warn`
+- If device is a server and the used storage is above the warning level, but ignore /boot partitions: `%storage.storage_perc > %storage.storage_perc_warn && %devices.type = "server" && %storage.storage_descr !~ "/boot"`
+- VMware LAG is not using "Source ip address hash" load balancing: `%devices.os = "vmware" && %ports.ifType = "ieee8023adLag" && %ports.ifDescr !~ "Link Aggregation @, load balancing algorithm: Source ip address hash"`
+- Syslog, authentication failure during the last 5m: `%syslog.timestamp >= %macros.past_5m && %syslog.msg ~ "@authentication failure@"`
+- High memory usage: `%macros.device_up = "1" && %mempools.mempool_perc >= "90" && %mempools.mempool_descr = "Virtual@"`
+- High CPU usage(per core usage, not overall): `%macros.device_up = "1" && %processors.processor_usage >= "90"`
+- High port usage, where description is not client & ifType is not softwareLoopback: `%macros.port_usage_perc >= "80" && %port.port_descr_type != "client" && %ports.ifType != "softwareLoopback"`
 
 # <a name="templates">Templates</a>
 
-Templates can be assigned to a single or a group of rules.  
-They can contain any kind of text.  
-The template-parser understands `if` and `foreach` controls and replaces certain placeholders with information gathered about the alert.  
+Templates can be assigned to a single or a group of rules.
+They can contain any kind of text.
+The template-parser understands `if` and `foreach` controls and replaces certain placeholders with information gathered about the alert.
 
 ## <a name="templates-syntax">Syntax</a>
 
 Controls:
 
-- if-else (Else can be omitted):  
-`{if %placeholder == 'value'}Some Text{else}Other Text{/if}`
-- foreach-loop:  
+- if-else (Else can be omitted):
+`{if %placeholder == value}Some Text{else}Other Text{/if}`
+- foreach-loop:
 `{foreach %placeholder}Key: %key<br/>Value: %value{/foreach}`
 
 Placeholders:
@@ -104,12 +111,13 @@ Placeholders:
 - Time Elapsed, Only available on recovery (`%state == 0`): `%elapsed`
 - Alert-ID: `%id`
 - Unique-ID: `%uid`
-- Faults, Only available on alert (`%state != 0`), must be iterated in a foreach (`{foreach %faults}`). Holds all available information about the Fault, accessable in the format `%value.Column`, for example: `%value.ifDescr`. Special field `%value.string` has most Identification-information (IDs, Names, Descrs) as single string, this is the equivalent of the default used.
+- Faults, Only available on alert (`%state != 0`), must be iterated in a foreach (`{foreach %faults}`). Holds all available information about the Fault, accessible in the format `%value.Column`, for example: `%value.ifDescr`. Special field `%value.string` has most Identification-information (IDs, Names, Descrs) as single string, this is the equivalent of the default used.
 - State: `%state`
 - Severity: `%severity`
 - Rule: `%rule`
 - Rule-Name: `%name`
 - Timestamp: `%timestamp`
+- Transport name: `%transport`
 - Contacts, must be iterated in a foreach, `%key` holds email and `%value` holds name: `%contacts`
 
 The Default Template is a 'one-size-fit-all'. We highly recommend defining own templates for your rules to include more specific information.
@@ -117,7 +125,7 @@ Templates can be matched against several rules.
 
 ## <a name="templates-examples">Examples</a>
 
-Default Template:  
+Default Template:
 ```text
 %title\r\n
 Severity: %severity\r\n
@@ -130,15 +138,23 @@ Rule: {if %name}%name{else}%rule{/if}\r\n
 Alert sent to: {foreach %contacts}%value <%key> {/foreach}
 ```
 
+Conditional formatting example, will display a link to the host in email or just the hostname in any other transport:
+```text
+{if %transport == mail}<a href="https://my.librenms.install/device/device=%hostname/">%hostname</a>{else}%hostname{/if}
+```
+
+Note the use of double-quotes.  Single quotes (`'`) in templates will be escaped (replaced with `\'`) in the output and should therefore be avoided.
+
+
 # <a name="transports">Transports</a>
 
-Transports are located within `$config['install_dir']/includes/alerts/transports.*.php` and defined as well as configured via ~~`$config['alert']['transports']['Example'] = 'Some Options'`~~.  
+Transports are located within `$config['install_dir']/includes/alerts/transports.*.php` and defined as well as configured via ~~`$config['alert']['transports']['Example'] = 'Some Options'`~~.
 
-Contacts will be gathered automatically and passed to the configured transports.  
+Contacts will be gathered automatically and passed to the configured transports.
 By default the Contacts will be only gathered when the alert triggers and will ignore future changes in contacts for the incident. If you want contacts to be re-gathered before each dispatch, please set ~~`$config['alert']['fixed-contacts'] = false;`~~ in your config.php.
 
-The contacts will always include the `SysContact` defined in the Device's SNMP configuration and also every LibreNMS-User that has at least `read`-permissions on the entity that is to be alerted.  
-At the moment LibreNMS only supports Port or Device permissions.  
+The contacts will always include the `SysContact` defined in the Device's SNMP configuration and also every LibreNMS-User that has at least `read`-permissions on the entity that is to be alerted.
+At the moment LibreNMS only supports Port or Device permissions.
 You can exclude the `SysContact` by setting:
 ~~
 ```php
@@ -164,7 +180,7 @@ $config['alert']['transports']['mail'] = true;
 ```
 ~~
 
-The E-Mail transports uses the same email-configuration like the rest of LibreNMS.  
+The E-Mail transports uses the same email-configuration like the rest of LibreNMS.
 As a small reminder, here is it's configuration directives including defaults:
 ~~
 ```php
@@ -172,6 +188,7 @@ $config['email_backend']                   = 'mail';               // Mail backe
 $config['email_from']                      = NULL;                 // Mail from. Default: "ProjectName" <projectid@`hostname`>
 $config['email_user']                      = $config['project_id'];
 $config['email_sendmail_path']             = '/usr/sbin/sendmail'; // The location of the sendmail program.
+$config['email_html']                      = FALSE;                // Whether to send HTML email as opposed to plaintext
 $config['email_smtp_host']                 = 'localhost';          // Outgoing SMTP server name.
 $config['email_smtp_port']                 = 25;                   // The port to connect.
 $config['email_smtp_timeout']              = 10;                   // SMTP connection timeout in seconds.
@@ -189,13 +206,13 @@ $config['alert']['default_mail']           = '';                   //Default ema
 
 > You can configure these options within the WebUI now, please avoid setting these options within config.php
 
-API transports definitions are a bit more complex than the E-Mail configuration.  
-The basis for configuration is ~~`$config['alert']['transports']['api'][METHOD]`~~ where `METHOD` can be `get`,`post` or `put`.  
-This basis has to contain an array with URLs of each API to call.  
-The URL can have the same placeholders as defined in the [Template-Syntax](#templates-syntax).  
-If the `METHOD` is `get`, all placeholders will be URL-Encoded.  
-The API transport uses cURL to call the APIs, therefore you might need to install `php5-curl` or similar in order to make it work.  
-__Note__: it is highly recommended to define own [Templates](#templates) when you want to use the API transport. The default template might exceed URL-length for GET requests and therefore cause all sorts of errors.  
+API transports definitions are a bit more complex than the E-Mail configuration.
+The basis for configuration is ~~`$config['alert']['transports']['api'][METHOD]`~~ where `METHOD` can be `get`,`post` or `put`.
+This basis has to contain an array with URLs of each API to call.
+The URL can have the same placeholders as defined in the [Template-Syntax](#templates-syntax).
+If the `METHOD` is `get`, all placeholders will be URL-Encoded.
+The API transport uses cURL to call the APIs, therefore you might need to install `php5-curl` or similar in order to make it work.
+__Note__: it is highly recommended to define own [Templates](#templates) when you want to use the API transport. The default template might exceed URL-length for GET requests and therefore cause all sorts of errors.
 
 Example:
 ~~
@@ -208,7 +225,7 @@ $config['alert']['transports']['api']['get'][] = "https://api.thirdparti.es/issu
 
 > You can configure these options within the WebUI now, please avoid setting these options within config.php
 
-The nagios transport will feed a FIFO at the defined location with the same format that nagios would.  
+The nagios transport will feed a FIFO at the defined location with the same format that nagios would.
 This allows you to use other Alerting-Systems to work with LibreNMS, for example [Flapjack](http://flapjack.io).
 ~~
 ```php
@@ -220,7 +237,7 @@ $config['alert']['transports']['nagios'] = "/path/to/my.fifo"; //Flapjack expect
 
 > You can configure these options within the WebUI now, please avoid setting these options within config.php
 
-The IRC transports only works together with the LibreNMS IRC-Bot.  
+The IRC transports only works together with the LibreNMS IRC-Bot.
 Configuration of the LibreNMS IRC-Bot is described [here](https://github.com/librenms/librenms/blob/master/doc/Extensions/IRC-Bot.md).
 ~~
 ```php
@@ -343,7 +360,7 @@ $config['alert']['transports']['pushover'][] = array(
 
 ## <a name="transports-boxcar">Boxcar</a>
 
-Enabling Boxcar support is super easy. 
+Enabling Boxcar support is super easy.
 Copy your access token from the Boxcar app or from the Boxcar.io website and setup the transport in your config.php like:
 
 ~~
@@ -378,8 +395,8 @@ $config['alert']['transports']['pushbullet'] = 'MYFANCYACCESSTOKEN';
 
 ## <a name="transports-clickatell">Clickatell</a>
 
-Clickatell provides a REST-API requiring an Authorization-Token and at least one Cellphone number.  
-Please consult Clickatell's documentation regarding number formating.  
+Clickatell provides a REST-API requiring an Authorization-Token and at least one Cellphone number.
+Please consult Clickatell's documentation regarding number formatting.
 Here an example using 3 numbers, any amount of numbers is supported:
 
 ~~
@@ -393,8 +410,8 @@ $config['alert']['transports']['clickatell']['to'][]  = '+1234567892';
 
 ## <a name="transports-playsms">PlaySMS</a>
 
-PlaySMS is an OpenSource SMS-Gateway that can be used via their HTTP-API using a Username and WebService-Token.  
-Please consult PlaySMS's documentation regarding number formating.  
+PlaySMS is an open source SMS-Gateway that can be used via their HTTP-API using a Username and WebService-Token.
+Please consult PlaySMS's documentation regarding number formatting.
 Here an example using 3 numbers, any amount of numbers is supported:
 
 ~~
@@ -423,6 +440,28 @@ The URL provided will have $routing_key at the end, you need to change this to s
 $config['alert']['transports']['victorops']['url'] = 'https://alert.victorops.com/integrations/generic/20132414/alert/2f974ce1-08fc-4dg8-a4f4-9aee6cf35c98/librenms';
 ```
 ~~
+
+## <a name="transports-canopsis">Canopsis</a>
+
+Canopsis is a hypervision tool. LibreNMS can send alerts to Canopsis which are then converted to canopsis events. To configure the transport, go to:
+
+Global Settings -> Alerting Settings -> Canopsis Transport.
+
+You will need to fill this paramaters :
+
+~~
+```php
+$config['alert']['transports']['canopsis']['host'] = 'www.xxx.yyy.zzz';
+$config['alert']['transports']['canopsis']['port'] = '5672';
+$config['alert']['transports']['canopsis']['user'] = 'admin';
+$config['alert']['transports']['canopsis']['passwd'] = 'my_password';
+$config['alert']['transports']['canopsis']['vhost'] = 'canopsis';
+```
+~~
+
+For more information about canopsis and its events, take a look here :
+ http://www.canopsis.org/
+ http://www.canopsis.org/wp-content/themes/canopsis/doc/sakura/user-guide/event-spec.html
 
 # <a name="entities">Entities
 
@@ -523,7 +562,7 @@ And in the Rule:
 This Example-macro is a Boolean-macro, it applies a form of filter to the set of results defined by the rule.
 All macros that are not unary should return Boolean.
 
-You can only apply _Equal_ or _Not-Equal_ Operations on Bollean-macros where `True` is represented by `"1"` and `False` by `"0"`.
+You can only apply _Equal_ or _Not-Equal_ Operations on Boolean-macros where `True` is represented by `"1"` and `False` by `"0"`.
 
 
 ## <a name="macros-device">Device</a> (Boolean)

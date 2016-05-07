@@ -73,6 +73,7 @@ $menu_options['realtime'] = 'Real time';
 // FIXME CONDITIONAL
 $menu_options['arp']    = 'ARP Table';
 $menu_options['events'] = 'Eventlog';
+$menu_options['notes'] = 'Notes';
 
 if (dbFetchCell("SELECT COUNT(*) FROM `ports_adsl` WHERE `port_id` = '".$port['port_id']."'")) {
     $menu_options['adsl'] = 'ADSL';
@@ -84,6 +85,17 @@ if (dbFetchCell("SELECT COUNT(*) FROM `ports` WHERE `pagpGroupIfIndex` = '".$por
 
 if (dbFetchCell("SELECT COUNT(*) FROM `ports_vlans` WHERE `port_id` = '".$port['port_id']."' and `device_id` = '".$device['device_id']."'")) {
     $menu_options['vlans'] = 'VLANs';
+}
+
+// Are there any CBQoS components for this device?
+require_once "../includes/component.php";
+$component = new component();
+$options = array();         // Re-init array in case it has been declared previously.
+$options['filter']['type'] = array('=','Cisco-CBQOS');
+$components = $component->getComponents($device['device_id'],$options);
+$components = $components[$device['device_id']];        // We only care about our device id.
+if (count($components) > 0) {
+    $menu_options['cbqos'] = 'CBQoS';
 }
 
 $sep = '';

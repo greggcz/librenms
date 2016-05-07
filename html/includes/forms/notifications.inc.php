@@ -21,6 +21,7 @@
  * @package LibreNMS
  * @subpackage Notifications
  */
+header('Content-type: application/json');
 
 $status    = 'error';
 $message   = 'unknown error';
@@ -33,7 +34,7 @@ if (isset($_REQUEST['notification_id']) && isset($_REQUEST['action'])) {
         $status  = 'ok';
         $message = 'Set as Sticky';
     }
-    elseif ($_SESSION['userlevel'] == 10 && $_REQUEST['action'] == 'unstick' && dbUpdate(array('key'=>'sticky','value'=>0),'notifications_attribs','notifications_id = ? && user_id = ?',array($_REQUEST['notification_id'],$_SESSION['user_id']))) {
+    elseif ($_SESSION['userlevel'] == 10 && $_REQUEST['action'] == 'unstick' && dbDelete('notifications_attribs',"notifications_id = ? && user_id = ? AND `key`='sticky'",array($_REQUEST['notification_id'],$_SESSION['user_id']))) {
         $status  = 'ok';
         $message = 'Removed Sticky';
     }

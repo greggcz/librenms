@@ -27,14 +27,24 @@ foreach($opts as $option) {
         $api = str_replace("%".$key, $method == "get" ? urlencode($value) : $value, $api);
     }
     $curl = curl_init();
-    $data = array(
-        "message" => $obj["msg"],
-        "room_id" => $option["room_id"],
-        "from" => $option["from"],
-        "color" => $option["color"],
-        "notify" => $option["notify"],
-        "message_format" => $option["message_format"]
-    );
+
+    if (empty($obj["msg"])) {
+        return "Empty Message";
+    }
+
+    if (empty($option["message_format"])) {
+        $option["message_format"] = 'text';
+    }
+
+    $data[] = "message=".urlencode($obj["msg"]);
+    $data[] = "room_id=".urlencode($option["room_id"]);
+    $data[] = "from=".urlencode($option["from"]);
+    $data[] = "color=".urlencode($option["color"]);
+    $data[] = "notify=".urlencode($option["notify"]);
+    $data[] = "message_format=".urlencode($option["message_format"]);
+
+    $data = implode('&', $data);
+
     // Sane default of making the message color green if the message indicates
     // that the alert recovered.
     if(strstr($data["message"], "recovered")) {
@@ -44,6 +54,9 @@ foreach($opts as $option) {
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($curl, CURLOPT_POST, true);
     curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+                'Content-Type: application/x-www-form-urlencoded',
+    ));
     $ret = curl_exec($curl);
 
     $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -51,7 +64,7 @@ foreach($opts as $option) {
         var_dump("API '$url' returned Error");
         var_dump("Params: " . $message);
         var_dump("Return: " . $ret);
-        return false;
+        return 'HTTP Status code '.$code;
     }
 }
 return true;

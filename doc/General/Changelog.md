@@ -1,3 +1,220 @@
+### April 2016
+
+#### Bug fixes
+  - Discovery / Polling:
+    - Fix poweralert OS detection (PR3414)
+  - WebUI:
+    - Fixed headers for varying ajax calls (PR3432, PR3433, PR3434, PR3435)
+  - Misc:
+    - Update syslog to support incorrect time (PR3348)
+    - Fixed InfluxDB to send data as int/float (PR3354)
+    - Small bug fixes to the services update (PR3366, PR3396, PR3425, PR3426, PR3427)
+    - Fix bug with obtaining data for new bills in some scenarios (PR3404)
+    - Improved PHP 7 support (PR3417)
+    - Fix urls within billing section for sub dir support (PR3442)
+
+#### Improvements
+  - WebUI:
+    - Update rancid file detection (PR3341)
+    - Make graphs in widgets clickable (PR3355)
+    - Add config option to set the typeahead results (PR3363)
+    - Add config option to set min graph height (PR3410)
+  - Discovery / Polling:
+    - Updated Infoblox mibs and logo (PR3340)
+    - Updated arp discovery to support vrf lite (PR3359)
+    - Added RSSI and MNC for Cisco WWAN routers (PR3371)
+    - Updated DNOS and added CPU, Memory and Temp (PR3391, PR3393, PR3395)
+    - Added PoE state support for Netonix devices (PR3416)
+    - Added ability to exclude ports via ifName and ifAlias regex (PR3439)
+  - Added detection for:
+    - Viprenet routers (PR3365)
+    - FreeBSD via distro script (PR3399)
+  - Documentation:
+    - Updated nginx install docs (PR3397)
+    - Added FAQ on renaming hosts (PR3444)
+  - API:
+    - Added call for IPsec tunnels (PR3411)
+  - Misc:
+    - Added check_mk FreeBSD agent support (PR3406)
+    - Added suggestion to fix files not owned by correct user to validate.php (PR3415)
+    - Added detection for missing timezone to validate.php (PR3428)
+    - Added detection for install_dir config and local git repo issues to validate.php (PR3440)
+
+### March 2016
+
+#### Bug fixes
+  - WebUI:
+    - Skip authentication check in graph.php if unauth graphs is enabled (PR3019)
+    - Stop double escaping notes for devices (PR3149)
+    - Corrected aggregate graph on smokeping page (PR3177)
+    - Fix non-admin syslog queries (PR3191)
+    - Fix services SQL (PR3205)
+  - Discovery / Polling:
+    - Revert arp discovery to pre-vrf lite support (PR3126)
+    - Fix IOS-XR DBM sensors (PR3291)
+  - Alerting:
+    - Fix alert failure response from transports (PR3283)
+  - Misc:
+    - Fix data in bills if counters doesn't change (PR3132)
+    - Improve performance of billing poller (PR3129)
+    - Fix API tokens when using LDAP auth (PR3178)
+    - Import notifications with original datetime (PR3200)
+    - Add sysName for top-interfaces widget (PR3201)
+    - Fix Cisco syslog parsing when logging timestamp enabled (PR3203)
+
+#### Improvements
+  - WebUI:
+    - Added ability to show device group specific maps (PR3018)
+    - Updated Billing UI (PR3194, PR3195, PR3216, PR3239, PR3240)
+    - Added Juniper
+    - Added config option for HTML emails in mail transport (PR3221)
+  - Discovery / Polling:
+    - Added Juniper state support (PR3121)
+    - Added Ironware state support (PR3160)
+    - Check sysObjectID before detecting ILO temp sensors (PR3204)
+    - Improved Avtech support (PR3207)
+    - Improved Dell NOS detection (PR3213)
+    - Added Juniper alarm state monitoring (PR3226)
+    - Updated Drac state support (PR3228)
+    - Improved serial # detection for Brocade Ironware devices (PR3292)
+  - Added detection for:
+    - Develop Ineo printers (PR3224)
+    - Cumulus Linux (PR3237)
+    - Deliberant WiFi (PR3246)
+    - Juniper EX2500 (PR3254)
+    - Cambium devices (PR3279)
+  - Alerting:
+    - Added Canopsis alerting transport (PR3299)
+  - Misc:
+    - Improved syslog support (PR3171, PR3172, PR3173)
+    - Added Nginx install docs for Debian/Ubuntu (PR3301)
+    - Updated InfluxDB php module (PR3302)
+    - Updated Component API (PR3304)
+
+### February 2016
+
+#### Bug fixes
+  - Discovery / Polling:
+    - Quote snmp v2c community (PR2927)
+    - For entity-sensor, changed variable name again (PR2948)
+    - Fix some issues with/introduced by port association mode configuration (PR2923)
+    - Deal with 0 value sensors better (PR2972, PR2973)
+    - Reverted Fortigate CPU change from Dec 2015 (PR2990)
+    - Reverted bgp code from vrf lite support (PR3010, PR3011, PR3028, PR3050)
+    - Add icon to database (PR3076)
+    - Discovery updated to check for distributed polling group (PR3086)
+  - WebUI:
+    - Fix ceph graps (PR2909, PR2942)
+    - BGP Overlib (PR2915)
+    - Added `application/json` headers where json is returned (PR2936, PR2961)
+    - Stop realtime graph page from auto refreshing (PR2939)
+    - Updated parsing of alert rules to allow `|` (PR2917)
+    - Fix IP Display (PR2951)
+    - Added missing from email config option (PR2986)
+    - Ignore devices that do not provide an uptime statistic (PR3009)
+    - Added unique id for alert widget (PR3034)
+  - Misc:
+    - Updated `device_by_id_cache()` to convert IP column (PR2940)
+    - Fixed auto updating if not enabled (PR3063)
+  - Documentation:
+    - Removed devloping doc as none of the info is current (PR2911)
+
+#### Improvements
+  - WebUI:
+    - Merged device option links to dropdown (PR2955)
+    - Added ability to configure # results for global search (PR2957)
+    - Added ability to show / hide line numbers for config for devices (PR2988)
+    - Added support for showing diff for Oxidized configs (PR2994)
+    - Updated visjs to 4.14.0 (PR3031)
+    - Updated apps layout to use panels (PR3117)
+  - Discovery / Polling:
+    - Added VRF Lite support (PR2820)
+    - Added ability to ignore device sensors from entity mib (PR2862)
+    - Added `ifOperStatus_prev` and `ifAdminStatus_prev` values to db (PR2912)
+    - Improved bgpPolling efficiency (PR2967)
+    - Use raw timeticks for uptime (PR3021)
+    - Introduced state monitoring (PR3102)
+  - Added detection for:
+    - Dell Networking N2048 (PR2949)
+    - Calix E7 devices (PR2958)
+    - Improved support for Netonix (PR2959)
+    - Improved detection for Windows 10 (PR2962)
+    - Improved support for FortiOS (PR2991)
+    - Barracuda Spam firewall support (PR2998)
+    - Improved sysDescr parsing for Unifi Switches (PR3020)
+    - Canon iR (PR3045)
+    - Cisco SF500 (PR3057)
+    - Eaton UPS (PR3066, PR3067, PR3070, PR3071)
+    - ServerIron / ServerIron ADX (PR3074)
+    - Additional Qnap sensors (PR3088, PR3089)
+    - Avtech environment sensors (PR3091)
+  - Misc:
+    - Added check for rrd vadility (PR2908)
+    - Add systemd unit file for the python poller service (PR2913)
+    - Added more detection to validate for bad installs (PR2985)
+    - Syslog cleanup (PR3036, PR3093, PR3099)
+  - Documentation:
+    -  Added description of AD configuration options (PR2910)
+    -  Add description to mibbases polling (PR2919)
+
+### January 2016
+
+#### Bug fixes
+  - Discovery / Polling:
+    - Ignore HC Broadcast and Multicast counters for Cisco SB (PR2552)
+    - Fix Cisco temperature discovery (PR2765)
+  - WebUI:
+    - Fix ajax_search.php returning null instead of [] (PR2695)
+    - Fix notification links (PR2721)
+    - Fix wrong suggestion to install PEAR in Web installer (PR2727)
+    - Fixed mysqli support for Web installer (PR2730)
+  - Misc:
+    - Fix deleting device_perf entries (PR2755)
+    - Fix for schema updates to device table when poller is running (PR2825)
+
+#### Improvements
+  - WebUI:
+    - Converted arp pages to use bootgrid (PR2669)
+    - Updated VMWare listing page (PR2684)
+    - Updated typeahead.js (PR2698)
+    - Added ability to set notes for ports (PR2688)
+    - Use browser width to scale CPU and Bandwidth graphs (PR2537, PR2633)
+    - Removed onClick from ports list (PR2744)
+    - Added support for showing sysName when hostname is IP (PR2796)
+    - Updated rancid support for different hostnames (PR2807)
+    - Added combined HTTP Auth and LDAP Auth authentication module (PR2835)
+    - Added ability to filter alerts using widgets (PR2834)
+  - Discovery / Polling:
+    - Print runtime info per poller/discovery modules (PR2713)
+    - Improved polling/discovery vmware module performance (PR2696)
+    - Added STP/RSTP support (PR2690)
+    - Moved system poller module to core module (PR2637)
+    - Added lookup of IP for devices with hostname (PR2798)
+    - Centralised sensors module file structure (PR2794)
+    - Graph poller module run times (PR2849)
+    - Updated vlan support using IEEE8021-Q-BRIDGE-MIB (PR2851)
+  - Added detection for:
+    - Added support for Samsung printers (PR2680)
+    - Added support for Canon printers (PR2687)
+    - Added support for Sub10 support (PR2469)
+    - Added support for Zyxel GS range (PR2729)
+    - Added support for HWGroup Poseidon (PR2742)
+    - Added support for Samsung SCX printers (PR2760)
+    - Added additional support for HP MSM (PR2766, PR2768)
+    - Added additional support for Cisco ASA and RouterOS (PR2784)
+    - Added support for Lenovo EMC NAS (PR2795)
+    - Added support for Infoblox (PR2801)
+  - API:
+    - Added support for Oxidized groups (PR2745)
+  - Misc:
+    - Added option to specify Smokeping ping value (PR2676)
+    - Added backend support for InfluxDB (PR2208)
+    - Alpha2 release of MIB Polling released (PR2536, PR2763)
+    - Centralised version info (PR2697)
+    - Added username support for libvirt over SSH (PR2728)
+    - Added Oxidized reload call when adding device (PR2792)
+    - Added components system to centralize data in MySQL (PR2623)
+
 ### December 2015
 
 #### Bug fixes
@@ -5,26 +222,61 @@
     - Fixed regex for negative lat/lng coords (PR2524)
     - Fixed map page looping due to device connected to itself (PR2545)
     - Fixed PATH_INFO for nginx (PR2551)
+    - urlencode the custom port types (PR2597)
+    - Stop non-admin users from being able to get to settings pages (PR2627)
+    - Fix JpGraph php version compare (PR2631)
   - Discovery / Polling:
     - Pointed snmp calls for Huawei to correct MIB folder (PR2541)
+    - Fixed Ceph unix-agent support. (PR2588)
+    - Moved memory graphs from storage to memory polling (PR2616)
+    - Mask alert_log mysql output when debug is enabled to stop console crashes (PR2618)
+    - Stop Quanta devices being detected as Ubiquiti (PR2632)
+    - Fix MySQL unix-agent graphs (PR2645)
+    - Added MTA-MIB and NETWORK-SERVICES-MIB to stop warnings printed in poller debug (PR2653)
+  - Services:
+    - Fix SSL check for PHP 7 (PR2647)
   - Alerting:
     - Fix glue-expansion for alerts (PR2522)
+    - Fix HipChat transport (PR2586)
   - Documentation:
     - Removed duplicate mysql-client install from Debian/Ubuntu install docs (PR2543)
+  - Misc:
+    - Update daily.sh to ignore issues writing to log file (PR2595)
 
 #### Improvements
   - WebUI:
     - Converted sensors page to use bootgrid (PR2531)
+    - Added new widgets for dashboard. Notes (PR2582), Generic image (PR2617)
+    - Added config option to disable lazy loading of images (PR2589)
+    - Visual update to Navbar. (PR2593)
+    - Update alert rules to show actual alert rule ID (PR2603)
+    - Initial support added for per user default dashboard (PR2620)
+    - Updated Worldmap to show clusters in red if one device is down (PR2621)
+    - Cleaned up Billing pages (PR2671)
   - Discovery / Polling
     - Added traffic bits as default for Cambium devices (PR2525)
     - Overwrite eth0 port data from UniFi MIBs for AirFibre devices (PR2544)
+    - Added lastupdate column to sensors table for use with alerts (PR2590,PR2592)
+    - Updated auto discovery via lldp to check for devices that use mac address in lldpRemPortId (PR2591)
+    - Updated auto discovery via lldp with absent lldpRemSysName (PR2619)
   - API:
     - Added ability to filter devices by type and os for Oxidized API call (PR2539)
+    - Added ability to update device information (PR2585)
+    - Added support for returning device groups (PR2611)
+    - Added ability to select port graphs based on ifDescr (PR2648)
   - Documentation:
     - Improved alerting docs explaining more options (PR2560)
+    - Added Docs for Ubuntu/Debian Smokeping integration (PR2610)
   - Added detection for:
     - Updated Netonix switch MIBs (PR2523)
     - Updated Fotinet MIBs (PR2529, PR2534)
+    - Cisco SG500 (PR2609)
+    - Updated processor support for Fortigate (PR2613)
+    - Added CPU / Memory support for PBN (PR2672)
+  - Misc:
+    - Updated validation to check for php extension and classes required (PR2602)
+    - Added Radius Authentication support (PR2615)
+    - Removed distinct() from alerts query to use indexes (PR2649)
 
 ### November 2015
 
@@ -37,6 +289,7 @@
     - Fix netcmd.php URI for sub dir installations (PR2428)
     - Fixed Oxidized fetch config with groups (PR2501)
     - Fixed background colour to white for some graphs (PR2516)
+    - Added missing Service description on services page (PR2679)
   - API:
     - Added missing quotes for MySQL queries (PR2382)
   - Discovery / Polling:
@@ -63,7 +316,7 @@
     - Added RIPE NCC API support for lookups (PR2455, PR2474)
     - Improved ports page for device with large number of neighbours (PR2460)
     - Merged all CPU graphs into one on overview page (PR2470)
-    - Added support for sortting by traffic on device port page (PR2508)
+    - Added support for sorting by traffic on device port page (PR2508)
     - Added support for dynamic graph sizes based on browser size (PR2510)
     - Made device location clickable in device header (PR2515)
     - Visual improvements to bills page (PR2519)
@@ -80,7 +333,7 @@
   - Alerting:
     - Added ability to globally disable sending alerts (PR2385)
     - Added support for Clickatell, PlaySMS and VictorOps (PR24104, PR2443)
-  - Documnetation:
+  - Documentation:
     - Improved CentOS install docs (PR2462)
     - Improved Proxmox setup docs (PR2483)
   - Misc:
@@ -133,7 +386,7 @@
     - Update Font Awesome (PR2167)
     - Allow user to influence when devices are grouped on world map (PR2170)
     - Centralised the date selector for graphs for re-use (PR2183)
-    - Dont show dashboard settings if `/bare=yes/` (PR2364)
+    - Don't show dashboard settings if `/bare=yes/` (PR2364)
   - API:
     - Added unmute alert function to API (PR2082)
   - Discovery / Polling:
@@ -165,7 +418,7 @@
     - Fixed IRC bot reconnect if socket dies (PR2061)
     - Updated default crons (PR2177)
   - Reverts:
-    - "Removed what appears to be unecessary STACK text" (PR2128)
+    - "Removed what appears to be unnecessary STACK text" (PR2128)
 
 ### September 2015
 
@@ -176,7 +429,7 @@
     - Issue alert-trigger as test object (PR1850)
   - WebUI:
     - Fix permissions for World-map widget (PR1866)
-    - Clean up Gloabl / World Map name mixup (PR1874)
+    - Clean up Global / World Map name mixup (PR1874)
     - Removed required flag for community when adding new hosts (PR1961)
     - Stop duplicate devices showing in map (PR1963)
     - Fix adduser bug storing users real name (PR1990)
@@ -287,7 +540,7 @@
     - Misc UI fixes (Titles, Headers, ...) (PR1797,PR1798,PR1800,PR1801,PR1802,PR1803,PR1804,PR1805)
     - Move packages to overview dropdown (PR1810)
   - API Updates:
-    - Improvided billing support in API (PR1599)
+    - Improved billing support in API (PR1599)
     - Extended support for list devices to support mac/ipv4 and ipv6 filtering (PR1744)
   - Added detection for:
     - Perle Media convertors (PR1607)
@@ -492,7 +745,7 @@
   - Fix SQL query for restricted users in /devices/ (PR990)
   - Fix for post-formatting time-macros (PR1006)
   - Honour disabling alerts for hosts (PR1051)
-  - Make OSPF and ARP discovery independant xDP (PR1053)
+  - Make OSPF and ARP discovery independent xDP (PR1053)
   - Fixed ospf_nbrs lookup to use device_id (PR1088)
   - Removed trailing / from some urls (PR1089 / PR1100)
   - Fix to device search for Device type and location (PR1101)
@@ -529,7 +782,7 @@
   - Enable alerting on tables with relative / indirect glues (PR932)
   - Added bills support in rulesuggest and alert system (PR934)
   - Added detection for Sentry Smart CDU (PR938)
-  - Added basic detection for Netgear devices (PR942)  
+  - Added basic detection for Netgear devices (PR942)
   - addhost.php now uses distributed_poller_group config if set (PR944)
   - Added port rewrite function (PR946)
   - Added basic detection for Ubiquiti Edgeswitch (PR947)
@@ -580,7 +833,7 @@
   - Show ifName in ARP search if devices are set to use this (PR1133)
   - Added FibreHome CPU and Mempool support (PR1134)
   - Added config options for region and resolution on globe map (PR1137)
-  - Addded RRDCached example docs (PR1148)
+  - Added RRDCached example docs (PR1148)
   - Updated support for additional NetBotz models (PR1152)
   - Updated /iftype/ page to include speed/circuit/notes (PR1155)
   - Added detection for PowerConnect 55XX devices (PR1165)
@@ -593,7 +846,7 @@
   - Added missing CPU id for Cisco SB (PR744)
   - Changed Processors table name to lower case in processors discovery (PR751)
   - Fixed alerts path issue (PR756, PR760)
-  - Supress further port alerts when interface goes down (PR745)
+  - Suppress further port alerts when interface goes down (PR745)
   - Fixed login so redirects via 303 when POST data sent (PR775)
   - Fixed missing link to errored or ignored ports (PR787)
   - Updated alert log query for performance improvements (PR783)
@@ -807,7 +1060,7 @@
  - Added names to all API routes (PR314)
  - Added route to call list of API endpoints (PR315)
  - Added options to $config to specify fping retry and timeout (PR323)
- - Added icmp / snnmp to device down alerts for debugging (PR324)
+ - Added icmp / snmp to device down alerts for debugging (PR324)
  - Added function to page results for large result pages (PR333)
 
 ###Sep 2014
@@ -827,7 +1080,7 @@
  - Fixed layout issue for ports list (PR286)
  - Removed session regeneration (PR287)
  - Updated edit button on edit user screen (PR288)
-  
+
 ####Improvements
  - Added email field for add user form (PR278)
  - V0 of API release (PR282)
@@ -856,7 +1109,7 @@
 ####Improvements
  - Updated index page (PR224)
  - Updated global search visually (PR223)
- - Added contributors aggrement (PR225)
+ - Added contributors agreement (PR225)
  - Added ability to update health values (PR226)
  - Tidied up search box on devices list page (PR229)
  - Updated port search box and port table list (PR230)
@@ -949,7 +1202,7 @@
 ###Nov 2013
 
 ####Bug fixes
- - Updates to fix arp discovery 
+ - Updates to fix arp discovery
 
 ####Improvements
  - Added poller-wrapper (f8debf4)

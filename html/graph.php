@@ -12,15 +12,7 @@
  */
 
 
-function utime() {
-    $time = explode(' ', microtime());
-    $usec = (double) $time[0];
-    $sec  = (double) $time[1];
-    return ($sec + $usec);
-
-}
-
-$start = utime();
+$start = microtime(true);
 
 require_once 'Net/IPv4.php';
 
@@ -48,13 +40,14 @@ require_once '../includes/dbFacile.php';
 require_once '../includes/rewrites.php';
 require_once 'includes/functions.inc.php';
 require_once '../includes/rrdtool.inc.php';
-require_once 'includes/authenticate.inc.php';
-
+if($config['allow_unauth_graphs'] != true) {
+  require_once 'includes/authenticate.inc.php';
+}
 require 'includes/graphs/graph.inc.php';
 
 $console_color = new Console_Color2();
 
-$end = utime();
+$end = microtime(true);
 $run = ($end - $start);
 
 

@@ -43,6 +43,10 @@ If you are deploying a separate database server, you need to change the `bind-ad
 
     vim /etc/mysql/my.cnf
 
+Within the [mysqld] section please add:
+
+    innodb_file_per_table=1
+
 Find the line: `bind-address = 127.0.0.1`
 
 Change `127.0.0.1` to the IP address that your MySQL server should listen on.  Restart MySQL:
@@ -69,6 +73,7 @@ Adding the above line to `/etc/snmp/snmpd.conf` and running `service snmpd resta
 
 In `/etc/php5/apache2/php.ini` and `/etc/php5/cli/php.ini`, ensure date.timezone is set to your preferred time zone.  See http://php.net/manual/en/timezones.php for a list of supported timezones.  Valid
 examples are: "America/New York", "Australia/Brisbane", "Etc/UTC".
+Please also ensure that `allow_url_fopen` is enabled. Other functions needed for LibreNMS include `exec,passthru,shell_exec,escapeshellarg,escapeshellcmd,proc_close,proc_open,popen`.
 
 ### Adding the librenms-user ###
 
@@ -102,7 +107,6 @@ First, create and chown the `rrd` directory and create the `logs` directory:
 
     mkdir rrd logs
     chown -R librenms:librenms /opt/librenms
-    chown www-data:www-data logs
     chmod 775 rrd
 
 > NOTE: If you're not running Ubuntu or Debian, you will need to change `www-data` to the user and group which run the Apache web server.
@@ -124,7 +128,7 @@ Next, add the following to `/etc/apache2/sites-available/librenms.conf`:
 </VirtualHost>
 ```
 
-If you are running Apache 2.2.18 or higher then change AllowEncodedSlashes to NoDecode
+If you are running Apache 2.2.18 or higher then change `AllowEncodedSlashes On` to `AllowEncodedSlashes NoDecode`
 
 If you have Apache 2.3 or newer then please add the following line before `AllowOverride All`:
 
@@ -172,6 +176,14 @@ Create the admin user - priv should be 10
     php adduser.php <name> <pass> 10 <email>
 
 Substitute your desired username, password and email address--and leave the angled brackets off.
+
+### Validate your install ###
+
+Run validate.php as root in the librenms directory
+
+    php validate.php
+
+This will check your install to verify it is set up correctly.
 
 ### Add localhost ###
 

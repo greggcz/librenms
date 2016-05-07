@@ -13,13 +13,22 @@
  */
 
 require_once '../includes/functions.php';
-
+require_once '../includes/component.php';
+require_once '../includes/device-groups.inc.php';
+if (file_exists('../html/includes/authentication/'.$config['auth_mechanism'].'.inc.php')) {
+       include '../html/includes/authentication/'.$config['auth_mechanism'].'.inc.php';
+}
 
 function authToken(\Slim\Route $route) {
     $app   = \Slim\Slim::getInstance();
     $token = $app->request->headers->get('X-Auth-Token');
     if (isset($token) && !empty($token)) {
-        $username = dbFetchCell('SELECT `U`.`username` FROM `api_tokens` AS AT JOIN `users` AS U ON `AT`.`user_id`=`U`.`user_id` WHERE `AT`.`token_hash`=?', array($token));
+        if (!function_exists('get_user')) {
+            $username = dbFetchCell('SELECT `U`.`username` FROM `api_tokens` AS AT JOIN `users` AS U ON `AT`.`user_id`=`U`.`user_id` WHERE `AT`.`token_hash`=?', array($token));
+        }
+        else {
+            $username = get_user(dbFetchCell('SELECT `AT`.`user_id` FROM `api_tokens` AS AT WHERE `AT`.`token_hash`=?', array($token)));
+        }
         if (!empty($username)) {
             $authenticated = true;
         }
@@ -62,10 +71,17 @@ function get_graph_by_port_hostname() {
         $vars['to'] = $_GET['to'];
     }
 
+    if ($_GET['ifDescr'] == true) {
+        $port = 'ifDescr';
+    }
+    else {
+        $port = 'ifName';
+    }
+
     $vars['width']  = $_GET['width'] ?: 1075;
     $vars['height'] = $_GET['height'] ?: 300;
     $auth           = '1';
-    $vars['id']     = dbFetchCell('SELECT `P`.`port_id` FROM `ports` AS `P` JOIN `devices` AS `D` ON `P`.`device_id` = `D`.`device_id` WHERE `D`.`hostname`=? AND `P`.`ifName`=?', array($hostname, $vars['port']));
+    $vars['id']     = dbFetchCell("SELECT `P`.`port_id` FROM `ports` AS `P` JOIN `devices` AS `D` ON `P`.`device_id` = `D`.`device_id` WHERE `D`.`hostname`=? AND `P`.`$port`=?", array($hostname, $vars['port']));
     $app->response->headers->set('Content-Type', 'image/png');
     include 'includes/graphs/graph.inc.php';
 
@@ -99,6 +115,11 @@ function get_graph_generic_by_hostname() {
     $hostname     = $router['hostname'];
     $vars         = array();
     $vars['type'] = $router['type'] ?: 'device_uptime';
+
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    $device = device_by_id_cache($device_id);
+
     if (!empty($_GET['from'])) {
         $vars['from'] = $_GET['from'];
     }
@@ -201,6 +222,7 @@ function list_devices() {
     }
     $devices = array();
     foreach (dbFetchRows("SELECT * FROM `devices` $join WHERE $sql ORDER by $order", $param) as $device) {
+        $device['ip'] = inet6_ntop($device['ip']);
         $devices[] = $device;
     }
 
@@ -500,6 +522,139 @@ function get_graph_by_portgroup() {
 }
 
 
+function get_components() {
+    global $config;
+    $code     = 200;
+    $status   = 'ok';
+    $message  = '';
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $hostname = $router['hostname'];
+
+    // Do some filtering if the user requests.
+    $options = array();
+    // We need to specify the label as this is a LIKE query
+    if (isset($_GET['label'])) {
+        // set a label like filter
+        $options['filter']['label'] = array('LIKE',$_GET['label']);
+        unset ($_GET['label']);
+    }
+    // Add the rest of the options with an equals query
+    foreach ($_GET as $k => $v) {
+        $options['filter'][$k] = array('=',$v);
+    }
+
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    $COMPONENT = new component();
+    $components = $COMPONENT->getComponents($device_id,$options);
+
+    $output       = array(
+        'status'  => "$status",
+        'err-msg' => $message,
+        'count'   => count($components[$device_id]),
+        'components'  => $components[$device_id],
+    );
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+
+function add_components() {
+    global $config;
+    $code     = 200;
+    $status   = 'ok';
+    $message  = '';
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $hostname = $router['hostname'];
+    $ctype = $router['type'];
+
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    $COMPONENT = new component();
+    $component = $COMPONENT->createComponent($device_id,$ctype);
+
+    $output       = array(
+        'status'  => "$status",
+        'err-msg' => $message,
+        'count'   => count($component),
+        'components'  => $component,
+    );
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+
+function edit_components() {
+    global $config;
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $hostname = $router['hostname'];
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    $COMPONENT = new component();
+
+    if ($COMPONENT->setComponentPrefs($device_id,$data)) {
+        // Edit Success.
+        $code     = 200;
+        $status   = 'ok';
+        $message  = '';
+    }
+    else {
+        // Edit Failure.
+        $code     = 500;
+        $status   = 'error';
+        $message  = 'Components could not be edited.';
+    }
+
+    $output       = array(
+        'status'  => "$status",
+        'err-msg' => $message,
+        'count'   => count($data),
+    );
+
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+
+function delete_components() {
+    global $config;
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $cid = $router['component'];
+
+    $COMPONENT = new component();
+    if ($COMPONENT->deleteComponent($cid)) {
+        // Edit Success.
+        $code     = 200;
+        $status   = 'ok';
+        $message  = '';
+    }
+    else {
+        // Edit Failure.
+        $code     = 500;
+        $status   = 'error';
+        $message  = 'Components could not be deleted.';
+    }
+
+    $output       = array(
+        'status'  => "$status",
+        'err-msg' => $message,
+    );
+
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+
 function get_graphs() {
     global $config;
     $code     = 200;
@@ -569,6 +724,32 @@ function get_port_graphs() {
     $app->response->headers->set('Content-Type', 'application/json');
     echo _json_encode($output);
 
+}
+
+function get_port_stack() {
+    global $config;
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $hostname = $router['hostname'];
+    // use hostname as device_id if it's all digits
+    $device_id      = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+
+    if (isset($_GET['valid_mappings'])) {
+        $mappings       = dbFetchRows("SELECT * FROM `ports_stack` WHERE (`device_id` = ? AND `ifStackStatus` = 'active' AND (`port_id_high` != '0' AND `port_id_low` != '0')) ORDER BY `port_id_high` ASC", array($device_id));
+    } else {
+        $mappings       = dbFetchRows("SELECT * FROM `ports_stack` WHERE `device_id` = ? AND `ifStackStatus` = 'active' ORDER BY `port_id_high` ASC", array($device_id));
+    }
+
+    $total_mappings = count($mappings);
+    $output         = array(
+        'status'  => 'ok',
+        'err-msg' => '',
+        'count'   => $total_mappings,
+        'mappings'   => $mappings,
+    );
+    $app->response->setStatus('200');
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
 }
 
 function list_alert_rules() {
@@ -784,7 +965,7 @@ function ack_alert() {
         $status = 'ok';
         $code   = 200;
         if (dbUpdate(array('state' => 2), 'alerts', '`id` = ? LIMIT 1', array($alert_id))) {
-            $message = 'Alert has been ackgnowledged';
+            $message = 'Alert has been acknowledged';
         }
         else {
             $message = 'No alert by that ID';
@@ -897,7 +1078,35 @@ function list_oxidized() {
     $devices = array();
     $device_types = "'".implode("','", $config['oxidized']['ignore_types'])."'";
     $device_os    = "'".implode("','", $config['oxidized']['ignore_os'])."'";
-    foreach (dbFetchRows("SELECT hostname,os FROM `devices` LEFT JOIN devices_attribs AS `DA` ON devices.device_id = DA.device_id AND `DA`.attrib_type='override_Oxidized_disable' WHERE `status`='1' AND (DA.attrib_value = 'false' OR DA.attrib_value IS NULL) AND (`type` NOT IN ($device_types) AND `os` NOT IN ($device_os))") as $device) {
+    foreach (dbFetchRows("SELECT hostname,os,location FROM `devices` LEFT JOIN devices_attribs AS `DA` ON devices.device_id = DA.device_id AND `DA`.attrib_type='override_Oxidized_disable' WHERE `disabled`='0' AND `ignore` = 0 AND (DA.attrib_value = 'false' OR DA.attrib_value IS NULL) AND (`type` NOT IN ($device_types) AND `os` NOT IN ($device_os))") as $device) {
+        if ($config['oxidized']['group_support'] == "true") {
+            foreach ($config['oxidized']['group']['hostname'] as $host_group) {
+                if (preg_match($host_group['regex'].'i', $device['hostname'])) {
+                    $device['group'] = $host_group['group'];
+                    break;
+                }
+            }
+            if (empty($device['group'])) {
+                foreach ($config['oxidized']['group']['os'] as $host_group) {
+                    if ($host_group['match'] === $device['os']) {
+                        $device['group'] = $host_group['group'];
+                        break;
+                    }
+                }
+            }
+            if (empty($device['group'])) {
+                foreach ($config['oxidized']['group']['location'] as $host_group) {
+                    if (preg_match($host_group['regex'].'i', $device['location'])) {
+                        $device['group'] = $host_group['group'];
+                        break;
+                    }
+                }
+            }
+            if (empty($device['group']) && !empty($config['oxidized']['default_group'])) {
+                $device['group'] = $config['oxidized']['default_group'];
+            }
+        }
+        unset($device['location']);
         $devices[] = $device;
     }
 
@@ -973,6 +1182,142 @@ function list_bills() {
         'err-msg' => $err_msg,
         'count' => $count,
         'bills' => $bills
+    );
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+function update_device() {
+    global $config;
+    $app = \Slim\Slim::getInstance();
+    $router = $app->router()->getCurrentRoute()->getParams();
+    $status   = 'error';
+    $code     = 500;
+    $hostname = $router['hostname'];
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    $data = json_decode(file_get_contents('php://input'), true);
+    $bad_fields = array('id','hostname');
+    if (empty($data['field'])) {
+        $message = 'Device field to patch has not been supplied';
+    }
+    elseif (in_array($data['field'], $bad_fields)) {
+        $message = 'Device field is not allowed to be updated';
+    }
+    else {
+        if (dbUpdate(array(mres($data['field']) => mres($data['data'])), 'devices', '`device_id`=?', array($device_id)) >= 0) {
+            $status = 'ok';
+            $message = 'Device ' . mres($data['field']) . ' field has been updated';
+            $code = 200;
+        }
+        else {
+            $message = 'Device ' . mres($data['field']) . ' field failed to be updated';
+        }
+    }
+    $output = array(
+        'status'  => $status,
+        'message' => $message,
+    );
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+function get_device_groups() {
+    $app = \Slim\Slim::getInstance();
+    $router = $app->router()->getCurrentRoute()->getParams();
+    $status   = 'error';
+    $code     = 404;
+    $hostname = $router['hostname'];
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    if (is_numeric($device_id)) {
+        $groups = GetGroupsFromDevice($device_id,1);
+    }
+    else {
+        $groups = GetDeviceGroups();
+    }
+    if (empty($groups)) {
+        $message = 'No device groups found';
+    }
+    else {
+        $status = 'ok';
+        $code = 200;
+        $message = 'Found ' . count($groups) . ' device groups';
+    }
+
+    $output = array(
+        'status'  => $status,
+        'message' => $message,
+        'count'   => count($groups),
+        'groups'  => $groups,
+    );
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+}
+
+function get_devices_by_group() {
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $status   = 'error';
+    $code     = 404;
+    $count    = 0;
+    $name = urldecode($router['name']);
+    $devices = array();
+    if (empty($name)) {
+        $message = 'No device group name provided';
+    }
+    else {
+        $group_id = dbFetchCell("SELECT `id` FROM `device_groups` WHERE `name`=?",array($name));
+        $devices = GetDevicesFromGroup($group_id);
+        $count = count($devices);
+        if (empty($devices)) {
+            $message = 'No devices found in group ' . $name;
+        }
+        else {
+            $message = "Found $count in group $name";
+            $code = 200;
+        }
+    }
+    $output = array(
+        'status'  => $status,
+        'message' => $message,
+        'count'   => $count,
+        'devices' => $devices,
+    );
+
+    $app->response->setStatus($code);
+    $app->response->headers->set('Content-Type', 'application/json');
+    echo _json_encode($output);
+
+}
+
+function list_ipsec() {
+    $app      = \Slim\Slim::getInstance();
+    $router   = $app->router()->getCurrentRoute()->getParams();
+    $status   = 'error';
+    $code     = 404;
+    $message  = '';
+    $hostname = $router['hostname'];
+    // use hostname as device_id if it's all digits
+    $device_id = ctype_digit($hostname) ? $hostname : getidbyname($hostname);
+    if (!is_numeric($device_id)) {
+        $message = "No valid hostname or device ID provided";
+    }
+    else {
+        $ipsec  = dbFetchRows("SELECT `D`.`hostname`, `I`.* FROM `ipsec_tunnels` AS `I`, `devices` AS `D` WHERE `I`.`device_id`=? AND `D`.`device_id` = `I`.`device_id`", array($device_id));
+        $total  = count($ipsec);
+        $status = 'ok';
+        $code   = 200;
+    }
+
+    $output  = array(
+        'status'  => $status,
+        'err-msg' => $message,
+        'count'   => $total,
+        'ipsec'  => $ipsec,
     );
     $app->response->setStatus($code);
     $app->response->headers->set('Content-Type', 'application/json');

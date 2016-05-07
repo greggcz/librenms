@@ -13,6 +13,7 @@
  */
 
 if (is_admin() === false) {
+	header('Content-type: text/plain');
     die('ERROR: You need to be admin');
 }
 
@@ -20,7 +21,7 @@ $alert_id = $_POST['alert_id'];
 
 if (is_numeric($alert_id) && $alert_id > 0) {
     $rule               = dbFetchRow('SELECT * FROM `alert_rules` WHERE `id` = ? LIMIT 1', array($alert_id));
-    $rule_split         = preg_split('/([a-zA-Z0-9_\-\.\=\%\<\>\ \"\'\!\~\(\)\*\/\@]+[&&\|\|]+)/', $rule['rule'], -1, (PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY));
+    $rule_split         = preg_split('/([a-zA-Z0-9_\-\.\=\%\<\>\ \"\'\!\~\(\)\*\/\@\|]+[&&|\|\|]{2})/', $rule['rule'], -1, (PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY));
     $count              = (count($rule_split) - 1);
     $rule_split[$count] = $rule_split[$count].'  &&';
     $output             = array(
@@ -29,5 +30,6 @@ if (is_numeric($alert_id) && $alert_id > 0) {
         'name'     => $rule['name'],
         'rules'    => $rule_split,
     );
+	header('Content-type: application/json');
     echo _json_encode($output);
 }

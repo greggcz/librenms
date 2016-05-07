@@ -64,7 +64,7 @@ else {
     onchange="window.open(this.options[this.selectedIndex].value,'_top')" >
 <?php
 
-    foreach (get_graph_subtypes($type) as $avail_type) {
+    foreach (get_graph_subtypes($type, $device) as $avail_type) {
         echo("<option value='".generate_url($vars, array('type' => $type."_".$avail_type, 'page' => "graphs"))."'");
         if ($avail_type == $subtype) {
             echo(" selected");
@@ -108,7 +108,7 @@ else {
     echo('</tr></table>');
 
     $graph_array = $vars;
-    $graph_array['height'] = "300";
+    $graph_array['height'] = $config['webui']['min_graph_height'];
     $graph_array['width']  = $graph_width;
 
     if($_SESSION['screen_width']) {
@@ -125,7 +125,7 @@ else {
             $graph_array['height'] = ($_SESSION['screen_height'] - ($_SESSION['screen_height']/2));
         }
         else {
-            $graph_array['height'] = ($_SESSION['screen_height'] - ($_SESSION['screen_height']/1.5));
+            $graph_array['height'] = max($graph_array['height'],($_SESSION['screen_height'] - ($_SESSION['screen_height']/1.5)));
         }
     }
 
